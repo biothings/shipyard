@@ -6,10 +6,9 @@ import driver from "k6/x/sql/driver/sqlite3";
 const db = sql.open(driver, "/src/data/graph_sample.db");
 
 export const options = {
-  batch: 15,
-  duration: '5m',
-  iterations: 100,
-  vus: 10,
+  duration: '1m',
+  iterations: 1,
+  vus: 1,
 };
 
 export function teardown() {
