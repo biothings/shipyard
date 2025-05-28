@@ -6,15 +6,12 @@ import driver from "k6/x/sql/driver/sqlite3";
 
 const graph_db = sql.open(driver, "/src/data/graph_sample.db");
 
-const USERNAME: string = "";
-const PASSWORD: string = "";
-
 export const options = {
-  batch: 5,
-  duration: '10m',
+  vus: 3,
   iterations: 20,
-  vus: 10,
+  duration: '30m',
 };
+
 
 export function teardown() {
   graph_db.close();
@@ -33,9 +30,10 @@ export default function () {
     let subject_type: string = graph_sample.subject_type
     let object_type: string = graph_sample.object_type
     let predicate: string = graph_sample.predicate
+    let query: string = `MATCH (\`n0\`:\`${subject_type}\` {\`id\`: $subject})-[\`e01\`:\`${predicate}\`]->(\`n1\`:\`${object_type}\`) RETURN *;`;
 
     let statement: object = {
-      statement : 'MATCH (`n0`:`${subject_type}` {`id`: "$subject"})-[`e01`:`${predicate}`]->(`n1`:`${object_type}`) RETURN *;',
+      statement : query
       parameters : { subject : graph_sample.subject}
     }
     statements.push(statement)
@@ -43,12 +41,15 @@ export default function () {
 
   const payload: string = JSON.stringify(statements);
 
+  const USERNAME: string = `${__ENV.NEO4J_USERNAME}`;
+  const PASSWORD: string = `${__ENV.NEO4J_PASSWORD}`;
   const credentials = encoding.b64encode(`${USERNAME}:${PASSWORD}`);
   const params = {
     headers: {
       'Authorization': `Basic ${credentials}`,
       'Content-Type': 'application/json'
     },
+    timeout: '900s'
   };
   http.post(url, payload, params);
 }

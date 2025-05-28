@@ -6,14 +6,10 @@ import driver from "k6/x/sql/driver/sqlite3";
 
 const graph_db = sql.open(driver, "/src/data/graph_sample.db");
 
-const USERNAME: string = "";
-const PASSWORD: string = "";
-
 export const options = {
-  batch: 10,
-  duration: '10m',
-  iterations: 100,
-  vus: 10,
+  duration: '1m',
+  iterations: 1,
+  vus: 1,
 };
 
 export function teardown() {
@@ -35,8 +31,10 @@ export default function () {
     let object_type: string = graph_sample.object_type
     let predicate: string = graph_sample.predicate
 
+    let query: string = `MATCH (\`n0\`:\`${subject_type}\` {\`id\`: $subject})-[\`e01\`:\`${predicate}\`]->(\`n1\`:\`${object_type}\` {\`id\`: $object}) RETURN *;`;
+
     let statement: object = {
-      statement : 'MATCH (`n0`:`${subject_type}` {`id`: "$subject"})-[`e01`:`${predicate}`]->(`n1`:`${object_type}` {`id`: "$object"}) RETURN *;',
+      statement : query,
       parameters : {
         subject : graph_sample.subject,
         object : graph_sample.object,
@@ -47,6 +45,8 @@ export default function () {
 
   const payload: string = JSON.stringify(statements);
 
+  const USERNAME: string = `${__ENV.NEO4J_USERNAME}`;
+  const PASSWORD: string = `${__ENV.NEO4j_PASSWORD}`;
   const credentials = encoding.b64encode(`${USERNAME}:${PASSWORD}`);
   const params = {
     headers: {
