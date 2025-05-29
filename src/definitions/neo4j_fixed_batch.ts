@@ -7,9 +7,9 @@ import driver from "k6/x/sql/driver/sqlite3";
 const graph_db = sql.open(driver, "/src/data/graph_sample.db");
 
 export const options = {
-  vus: 3,
-  iterations: 5,
-  duration: '30m',
+  vus: 5,
+  iterations: 25,
+  duration: '60m',
 };
 
 

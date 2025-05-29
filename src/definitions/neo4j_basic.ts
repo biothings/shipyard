@@ -25,7 +25,7 @@ export default function () {
 
   const url: string = "http://su08:7474/db/neo4j/tx/commit";
 
-  let statements: array = [];
+  let query_statements: array = [];
   for (let graph_sample of samples) {
     let subject_type: string = graph_sample.subject_type
     let object_type: string = graph_sample.object_type
@@ -40,13 +40,13 @@ export default function () {
         object : graph_sample.object,
       }
     }
-    statements.push(statement)
+    query_statements.push(statement)
   }
 
-  const payload: string = JSON.stringify(statements);
+  const payload: string = JSON.stringify({statements: query_statements});
 
   const USERNAME: string = `${__ENV.NEO4J_USERNAME}`;
-  const PASSWORD: string = `${__ENV.NEO4j_PASSWORD}`;
+  const PASSWORD: string = `${__ENV.NEO4J_PASSWORD}`;
   const credentials = encoding.b64encode(`${USERNAME}:${PASSWORD}`);
   const params = {
     headers: {
