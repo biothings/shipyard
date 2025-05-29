@@ -42,6 +42,7 @@ export default function () {
     headers: {
       'Content-Type': 'application/json',
     },
+    timeout: '30s'
   };
   http.post(url, payload, params);
 }
