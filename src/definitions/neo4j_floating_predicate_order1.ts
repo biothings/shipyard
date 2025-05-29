@@ -30,7 +30,7 @@ export default function () {
   for (let graph_sample of samples) {
     let subject_type: string = graph_sample.subject_type
     let object_type: string = graph_sample.object_type
-    let query: string = `MATCH (\`n0\`:\`${subject_type}\` {\`id\`: $subject})-[\`e01\`:\`{}\`]->(\`n1\`:\`${object_type}\` {\`id\`: $object}) RETURN *;`;
+    let query: string = `MATCH (\`n0\`:\`${subject_type}\` {\`id\`: $subject})--(\`n1\`:\`${object_type}\` {\`id\`: $object}) RETURN *;`;
 
     let statement: object = {
       statement : query,
