@@ -3,7 +3,9 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-const db = sql.open(driver, "/src/data/graph_sample.db");
+import { graph_samples } from './sampling.ts';
+
+const graph_db = sql.open(driver, "/src/data/graph_sample.db");
 
 export const options = {
   duration: '1m',
@@ -12,14 +14,11 @@ export const options = {
 };
 
 export function teardown() {
-  db.close();
+  graph_db.close();
 }
 
 export default function () {
-  let samples: Array<{ subject: string, object: string, predicate: string }> = db.query(`
-    SELECT * FROM graph_samples WHERE rowid IN
-        (SELECT rowid FROM graph_samples ORDER BY random() LIMIT 1);
-  `);
+  let samples: Array<{object}> = graph_samples(graph_db, 1)
   let sampled_row: object = samples[0];
   
   const url: string = 'http://su12:9200/_search';
@@ -36,7 +35,6 @@ export default function () {
       }
     }
   );
-  console.log(payload);
 
   const params = {
     headers: {

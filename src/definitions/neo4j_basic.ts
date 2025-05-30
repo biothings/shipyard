@@ -4,6 +4,8 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
+import { graph_samples } from './sampling.ts';
+
 const graph_db = sql.open(driver, "/src/data/graph_sample.db");
 
 export const options = {
@@ -17,11 +19,8 @@ export function teardown() {
 }
 
 export default function () {
-  let samples: Array<{object}> = graph_db.query(`
-    SELECT * FROM graph_samples WHERE rowid IN
-        (SELECT rowid FROM graph_samples ORDER BY random() LIMIT 1);
 
-  `);
+  let samples: Array<{object}> = graph_samples(graph_db, 1)
 
   const url: string = "http://su08:7474/db/neo4j/tx/commit";
 

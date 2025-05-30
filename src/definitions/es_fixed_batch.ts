@@ -3,6 +3,8 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
+import { graph_samples } from './sampling.ts';
+
 const db = sql.open(driver, "/src/data/graph_sample.db");
 
 export const options = {
@@ -16,11 +18,7 @@ export function teardown() {
 }
 
 export default function () {
-  let samples: Array<{ subject: string, object: string, predicate: string }> = db.query(`
-    SELECT * FROM graph_samples WHERE rowid IN
-        (SELECT rowid FROM graph_samples ORDER BY random() LIMIT 1000);
-  `);
-
+  let samples: Array<{object}> = graph_samples(graph_db, 1000)
 
   let aggregated_statements: array = [];
   for (let graph_sample of samples) {
