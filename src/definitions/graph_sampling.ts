@@ -29,7 +29,7 @@ export function neo4j_fixed_query(sampling_database: Database, sample_size: int)
   }
   const payload: string = JSON.stringify({statements: query_statements});
   return payload;
-
+}
 
 
 export function neo4j_floating_object_query(sampling_database: Database, sample_size: int) {
@@ -42,7 +42,7 @@ export function neo4j_floating_object_query(sampling_database: Database, sample_
     const query: string = `MATCH (\`n0\`:\`${subject_type}\` {\`id\`: $subject})-[\`e01\`:\`${predicate}\`]->(\`n1\`:\`${object_type}\`) RETURN *;`;
 
     const statement: object = {
-      statement : query
+      statement : query,
       parameters : { subject : graph_sample.subject}
     }
     query_statements.push(statement)
@@ -50,6 +50,7 @@ export function neo4j_floating_object_query(sampling_database: Database, sample_
 
   const payload: string = JSON.stringify({statements: query_statements});
   return payload;
+}
 
 
 export function neo4j_floating_predicate_query(sampling_database: Database, sample_size: int) {
@@ -71,6 +72,7 @@ export function neo4j_floating_predicate_query(sampling_database: Database, samp
 
   const payload: string = JSON.stringify({statements: query_statements});
   return payload;
+}
 
 
 export function neo4j_floating_subject_query(sampling_database: Database, sample_size: int) {
@@ -89,3 +91,5 @@ export function neo4j_floating_subject_query(sampling_database: Database, sample
   }
 
   const payload: string = JSON.stringify({statements: query_statements});
+  return payload;
+}
