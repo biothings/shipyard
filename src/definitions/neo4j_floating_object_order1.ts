@@ -4,9 +4,9 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { graph_samples } from './sampling.ts';
+import { neo4j_floating_object_query } from './graph_sampling.ts';
 
-const graph_db = sql.open(driver, "/src/data/graph_sample.db");
+const graph_sample = sql.open(driver, "/src/data/graph_sample.db");
 
 export const options = {
   vus: 5,
@@ -16,39 +16,19 @@ export const options = {
 
 
 export function teardown() {
-  graph_db.close();
+  graph_sample.close();
 }
 
 export default function () {
-  let samples: Array<{object}> = graph_samples(graph_db, 1)
-
   const url: string = "http://su08:7474/db/neo4j/tx/commit";
-
-  let query_statements: array = [];
-  for (let graph_sample of samples) {
-    let subject_type: string = graph_sample.subject_type
-    let object_type: string = graph_sample.object_type
-    let predicate: string = graph_sample.predicate
-    let query: string = `MATCH (\`n0\`:\`${subject_type}\` {\`id\`: $subject})-[\`e01\`:\`${predicate}\`]->(\`n1\`:\`${object_type}\`) RETURN *;`;
-
-    let statement: object = {
-      statement : query
-      parameters : { subject : graph_sample.subject}
-    }
-    query_statements.push(statement)
-  }
-
-  const payload: string = JSON.stringify({statements: query_statements});
-
-  const USERNAME: string = `${__ENV.NEO4J_USERNAME}`;
-  const PASSWORD: string = `${__ENV.NEO4J_PASSWORD}`;
-  const credentials = encoding.b64encode(`${USERNAME}:${PASSWORD}`);
-  const params = {
+  const credentials: string = encoding.b64encode(`${__ENV.NEO4J_USERNAME}:${__ENV.NEO4J_PASSWORD}`);
+  const params: object = {
     headers: {
       'Authorization': `Basic ${credentials}`,
       'Content-Type': 'application/json'
     },
     timeout: '1200s'
   };
+  const payload: string = neo4j_floating_object_query(graph_sample, 1000)
   http.post(url, payload, params);
 }
