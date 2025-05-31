@@ -15,34 +15,34 @@ export const options = {
       executor: 'shared-iterations',
       startTime: '0s',
       gracefulStop: '15s',
-      env: { NUM_SAMPLE: '1', HTTP_TIMEOUT: '15s', URL: TestConfiguration["ES_QUERY_URL"][0] },
+      env: { NUM_SAMPLE: '1', HTTP_TIMEOUT: '15s'},
       vus: 1,
       iterations: 1,
       maxDuration: '30s',
     },
     quarter_load: {
       executor: 'shared-iterations',
-      startTime: '0s',
+      startTime: '30s',
       gracefulStop: '15s',
-      env: { NUM_SAMPLE: '250', HTTP_TIMEOUT: '120s', URL: TestConfiguration["ES_QUERY_URL"][0] },
+      env: { NUM_SAMPLE: '250', HTTP_TIMEOUT: '120s'},
       vus: 20,
       iterations: 100,
-      maxDuration: '30s',
+      maxDuration: '10m',
     },
     half_load: {
       executor: 'shared-iterations',
-      startTime: '30s',
+      startTime: '11m',
       gracefulStop: '30s',
-      env: { NUM_SAMPLE: '500', HTTP_TIMEOUT: '120s', URL: TestConfiguration["ES_QUERY_URL"][0] },
+      env: { NUM_SAMPLE: '500', HTTP_TIMEOUT: '120s'},
       vus: 15,
-      iterations: 100,
+      iterations: 50,
       maxDuration: '10m',
     },
     full_load: {
       executor: 'shared-iterations',
-      startTime: '10m',
+      startTime: '22m',
       gracefulStop: '30s',
-      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '300s', URL: TestConfiguration["ES_QUERY_URL"][0] },
+      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '300s'},
       vus: 5,
       iterations: 25,
       maxDuration: '10m',
@@ -66,7 +66,9 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: string = es_fixed_query(graph_db, __ENV.NUM_SAMPLE)
+  const index: string = "rtx_kg2_edges";
+  const payload: string = es_fixed_query(graph_db, __ENV.NUM_SAMPLE, index);
   data.params.timeout = __ENV.HTTP_TIMEOUT;
-  http.post(__ENV.URL, payload, data.params);
+  console.log(TestConfiguration["ES_QUERY_URL"][0])
+  http.post(TestConfiguration["ES_QUERY_URL"][0], payload, data.params);
 }

@@ -32,6 +32,7 @@ export function es_fixed_query(sampling_database: Database, sample_size: int, es
   }
   const payload: string = aggregated_statements.join("\n") + "\n";
   return payload;
+}
 
 
 export function neo4j_fixed_query(sampling_database: Database, sample_size: int) {
