@@ -8,6 +8,32 @@ function graph_samples(sampling_database: Database, sample_size: int) {
 }
 
 
+export function es_fixed_query(sampling_database: Database, sample_size: int, es_index: string) {
+  let samples: Array<{object}> = graph_samples(sampling_database, sample_size)
+
+  let aggregated_statements: array = [];
+  for (let graph_sample of samples) {
+    aggregated_statements.push(JSON.stringify({index: es_index}));
+    aggregated_statements.push(
+      JSON.stringify(
+        {
+          query : {
+            bool : {
+              filter : [
+                {term : { 'subject.keyword' : graph_sample.subject }},
+                {term : { 'object.keyword' : graph_sample.object}},
+                {term : { 'predicate.keyword' : graph_sample.predicate}}
+              ]
+            }
+          }
+        }
+      )
+    );
+  }
+  const payload: string = aggregated_statements.join("\n") + "\n";
+  return payload;
+
+
 export function neo4j_fixed_query(sampling_database: Database, sample_size: int) {
   const samples: Array<{object}> = graph_samples(sampling_database, sample_size)
 

@@ -4,10 +4,9 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { neo4j_fixed_query } from './graph_sampling.ts';
-import { TestConfiguration } from './configuration.ts';
+import { neo4j_floating_predicate_query } from './graph_sampling.ts';
 
-const graph_db = sql.open(driver, "/src/data/graph_sample.db")
+const graph_sample = sql.open(driver, "/src/data/graph_sample.db");
 
 export const options = {
   scenarios: {
@@ -56,13 +55,12 @@ export function setup() {
   return { params: params }
 }
 
-
 export function teardown() {
-  graph_db.close();
+  graph_sample.close();
 }
 
-export default function (data: Object) {
-  const payload: string = neo4j_fixed_query(graph_db, __ENV.NUM_SAMPLE)
+export default function () {
+  const payload: string = neo4j_floating_predicate_query(graph_db, __ENV.NUM_SAMPLE)
   const url: string = TestConfiguration["NEO4J_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
