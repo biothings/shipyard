@@ -19,5 +19,4 @@ FROM alpine:3.21
 COPY --from=builder /app/k6 /bin/
 COPY ./src .
 
-ENTRYPOINT ["k6", "run", "--http-debug='full'"]
-CMD [ "./src/definitions/neo4j_fixed_batch.ts" ]
+ENTRYPOINT ["k6", "run"]

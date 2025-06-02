@@ -57,10 +57,38 @@ k6 as a docker image
 
 Now to run the tests. Simply build and then run docker container to automatically run the k6 tests
 
+
+###### Build and Run
+
 ```shell
-docker compose run --rm --entrypoint="k6 run /src/definitions/<testcase>.ts" k6
-docker compose run --rm --entrypoint="k6 run --http-debug='full' /src/definitions/<testcase>.ts" k6
-sudo docker compose run --rm --entrypoint="k6 run -e NEO4J_USERNAME=<> -e NEO4J_PASSWORD=<> /src/definitions/<testcase>.ts" k6
+# generic build & run command
+docker compose run --build --rm --entrypoint="k6 run /src/definitions/<testcase>.ts" shipyard 
+
+# build & run command with HTTP debugging enabled
+docker compose run --build --rm --entrypoint="k6 run --http-debug='full' /src/definitions/<testcase>.ts" shipyard
+
+# build & run command with full test summary
+docker compose run --build --rm --entrypoint="k6 run --summary-mode='full' /src/definitions/<testcase>.ts" shipyard
+
+# build & run command providing neo4j credentials via environment variables
+docker compose run --build --rm --entrypoint="k6 run -e NEO4J_USERNAME=<> -e NEO4J_PASSWORD=<> /src/definitions/<neo4j_testcase>.ts" shipyard
+```
+
+
+###### Run
+
+```shell
+# generic run command
+docker compose run --rm --entrypoint="k6 run /src/definitions/<testcase>.ts" shipyard
+
+# run command with HTTP debugging enabled
+docker compose run --rm --entrypoint="k6 run --http-debug='full' /src/definitions/<testcase>.ts" shipyard
+
+# build & run command with full test summary
+docker compose run --rm --entrypoint="k6 run --summary-mode='full' /src/definitions/<testcase>.ts" shipyard
+
+# run command providing neo4j credentials via environment variables
+docker compose run --rm --entrypoint="k6 run -e NEO4J_USERNAME=<> -e NEO4J_PASSWORD=<> /src/definitions/<testcase>.ts" shipyard
 ```
 
 

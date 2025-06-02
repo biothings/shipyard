@@ -1,8 +1,8 @@
 name: shipyard
 services:
-  k6:
-    entrypoint: k6 run --http-debug='full'
-    command: ./src/definitions/neo4j_fixed_batch.ts
+  shipyard:
+    entrypoint: k6 run 
+    command: --help
     build:
       context: .
       dockerfile: ./docker/Dockerfile
