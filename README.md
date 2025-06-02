@@ -1,12 +1,90 @@
 ### Shipyard
 
-Repository for load testing various services related to the NCATSTranslator program
+Repository for load testing various resources targetting infrastructure with
+the NCATS Translator ecosystem
+
+Currently we're wanting to stress different datastores with a large graph datasource
+and evaluate performance for 0-hop and 1-hop graph queries. 
+
+Implemented datastores
+
+* elasticsearch
+* neo4j
+
+Targetted datastores
+
+* kuzudb (testing currently separate python package)
 
 
-At the moment primarily focused on the following services
+We're also wishing to evaluate performance for various services to identify bottlenecks and optimize
+NCATS Translator services
+
+
+Implemented API's
+
+* []
+
+Targetted API's
 
 * nodenorm [renci](https://nodenormalization-sri.renci.org/docs)
 * nodenorm [scripps](https://pending.biothings.io/nodenorm)
+
+
+
+
+## How to run load tests
+
+Our load testing framework of choice is [k6](https://k6.io/). A brief overview of k6 should explain
+how to read / write tests in the framework's specified structure. At the moment we have the
+following structure in the repository
+
+```shell
+.
+├── docker
+└── src
+    ├── data
+    ├── definitions
+    └── typings
+```
+
+Specific to k6, the load tests (and any tests for that matter) exist in the `~/src/definitions`
+directory. k6 expects the test definitions to be written in either javascript or typescript. The
+best overview (in my opinion) for the test structure can be found
+[here](https://grafana.com/docs/k6/latest/using-k6/test-lifecycle/) on the k6 documentation. 
+
+So we define all our tests and test configuration within the `~/src/definitions` and then we build
+k6 as a docker image
+
+Now to run the tests. Simply build and then run docker container to automatically run the k6 tests
+
+```shell
+docker compose run --rm --entrypoint="k6 run /src/definitions/<testcase>.ts" k6
+docker compose run --rm --entrypoint="k6 run --http-debug='full' /src/definitions/<testcase>.ts" k6
+sudo docker compose run --rm --entrypoint="k6 run -e NEO4J_USERNAME=<> -e NEO4J_PASSWORD=<> /src/definitions/<testcase>.ts" k6
+```
+
+
+###### Docker Notes 
+Several notes about the docker container for interested parties.
+
+A lot of the associated data we use is assumed to exist in the `~/src/data` directory which is
+copied to the image filesystem at `/src` (we currently copy the entire `src` directory at the
+moment, this may change if we adopt data generation as image build time). A lot of the data I've
+generated in sqlite3 as a convienent datastore. Since k6 is a golang project, if we want
+to enable sqlite3 we have to set `CGO_ENABLED=1` to enable `CGO`. 
+
+For any k6 extensions you wish to install, add them to the following build line the dockerfile
+
+```DOCKERFILE
+# xk6 url list for building
+RUN xk6 build  \
+    --with github.com/grafana/xk6-sql@latest \
+    --with github.com/grafana/xk6-sql-driver-sqlite3 \
+    --with github.com/grafana/xk6-dashboard \
+    ...
+    --with <your dependency here>
+```
+
 
 
 
@@ -17,29 +95,43 @@ We have this defined in the `docker-compose.yml`. Simply run `docker compose up`
 testing framework up
 
 
-#### Test Cases
+### Test Cases
 
-##### Dataset: RTX-KG2
+#### Dataset: RTX-KG2
 
-For the RTX-KG2 dataset we have 4 "flavors" of tests that we want to test. For each case we want to
-have a set of around 1 million entries consisting of sampled values for `subject`, `object`, and `predicate` 
-from our dataset. Each query will use batch sizes between [500, 1000]
+The data is sampled from the rtx-kg2-edges and rtx-kg2-nodes. For testing full load we attempt to target sizes at maximum of
+around 1000 entries.
+
+These sampled values consist of the following at the moment:
+
+* `subject`
+* `subject_type` 
+* `object`
+* `object_type` 
+* `predicate` 
+
+
+##### Test Types
+
+For the RTX-KG2 dataset we have 4 "flavors" of tests that we want to test.
 
 1. Constant identifiers for `subject`, `object`, and `predicate`.
 
+| subject          | object           | predicate  |
+| ---------------- | ---------------- | ---------- |
+| constant         | constant         | constant   |
+
+
+2. Constant identifiers for 2 of the 3 identifiers in the triplet.
+
 | subject          | object           | predicate        |
 | ---------------- | ---------------- | ---------------- |
-| constant         | constant         | type constrained |
-
-
-2. Constant identifiers for 2 of the 3 identifiers in the triplet. 
-
-
-| subject          | object           | predicate        |
-| ---------------- | ---------------- | ---------------- |
-| constant         | constant         | type constrained |
+| constant         | constant         | type constrained*|
 | constant         | type constrained | constant         |
 | type constrained | constant         | constant         |
+
+*In the case of the predicate, we allow for any value so it is
+any predicate relationship between the fixed subject and fixed object
 
 
 3. Constant identifiers for 1 of the 3 identifiers in the triplet.
@@ -47,29 +139,32 @@ from our dataset. Each query will use batch sizes between [500, 1000]
 | subject          | object           | predicate        |
 | ---------------- | ---------------- | ---------------- |
 | type constrained | type constrained | constant         |
-| type constrained | constant         | type constrained |
-| constant         | type constrained | type constrained |
+| type constrained | constant         | type constrained*|
+| constant         | type constrained | type constrained*|
 
-4. Constant identifiers for `subject`, `object`, and `predicate`.
+*In the case of the predicate, we allow for any value so it is
+any predicate relationship between the fixed subject and type constrained object
+or type constrained subject and fixed object
+
+4. Constant identifiers for none of the values in within
+`subject`, `object`, and `predicate`. Highly floating query that would heavily
+stress the system
 
 | subject          | object           | predicate        |
 | ---------------- | ---------------- | ---------------- |
 | type constrained | type constrained | type constrained |
 
 
+##### Query Building
+
+###### Elasticsearch
+
+At the moment we're not yet able to handle type constrained queries
+due to the structure of the indices we've created.
 
 
-###### elasticsearch 
+##### Case 1.
 
-The RTX-KG2 data is stored on at `su12:9200`
-
-```
-green open rtx_kg2_nodes pH7Zf03uRy2uHUbfZdxj-w  5 0    6698073        0   2.4gb   2.4gb   2.4gb
-green open rtx_kg2_edges R0DUqL_lQH6oszTFnjN7zA  5 0   26948303        0   9.3gb   9.3gb   9.3gb
-```
-
-
-Case 1.
 ```JSON
 {
     "query": {
@@ -85,56 +180,122 @@ Case 1.
 }
 ```
 
-###### neo4j
-
-Nodes are referred to in cypher via ()
-Properties are referred to in cypher via {}
-Nodes in a graph may be connected via a relationship  (indicated via -->)
-    - must have a start node, an end node, and exactly one type
+###### Neo4j
 
 
-
-node 0: (`n0`:`biolink:SmallMolecule`) [type constrained]
-    - label: `biolink:SmallMolecule`
-    - property: None
-node 1: (`n1`:`biolink:ChemicalEntity` {`id`: "CHEBI:33706"}) [constant]
-    - label: `biolink:ChemicalEntity`
-    - property: {`id`: "CHEBI:33706"}
+Some briefs notes on the cypher query language specific to neo4j
+* `Nodes` are referred to in cypher via `()`
+* `Properties` are referred to in cypher via `{}`
+* `Relationships` are indicated via { `<--`, `--`, `-->`}
+    * must have a start node, an end node, and exactly one type
 
 
+##### Case 1.
 
-
-
-Case 2.
-```SQL
-MATCH
-    (`n0`:`biolink:SmallMolecule`)
-    -[`e01`:`biolink:chemically_similar_to`]->
-    (`n1`:`biolink:ChemicalEntity` {`id`: "CHEBI:33706"})
-RETURN *;
-```
-
-###### kuzudb
-
-
-Case 2.
-```SQL
-MATCH
-    (`n0`:Node {`category`: "biolink:SmallMolecule"})
-    -[`e01`:Edge {`predicate`: "biolink:chemically_similar_to"}]->
-    (`n1`:Node {`id`: "CHEBI:33706", `category`: "biolink:ChemicalEntity"})
+```Cypher
+MATCH 
+    (`n0`:`${subject_type}` {`id`: $subject})
+    -[`e01`:`${predicate}`]->
+    (`n1`:`${object_type}` {`id`: $object})
 RETURN *;
 ```
 
 
-[X] Batch test for elasticsearch (Case 1)
-[X] Batch test for neo4j (Case 1)
-[X] Batch test for kuzudb (Case 1)
+##### Case 2.
 
-[] Batch test for elasticsearch (Case 2)
-[X] Batch test for neo4j (Case 2)
-[X] Batch test for kuzudb (Case 2)
 
-<!-- [] Batch test for elasticsearch (Case 3) -->
-<!-- [] Batch test for neo4j (Case 3) -->
-<!-- [] Batch test for kuzudb (Case 3) -->
+* Floating Subject
+
+```Cypher
+MATCH 
+    (`n0`:`${subject_type}`)
+    -[`e01`:`${predicate}`]->
+    (`n1`:`${object_type}` {`id`: $object})
+RETURN *;
+```
+
+* Floating Predicate
+
+```Cypher
+MATCH 
+    (`n0`:`${subject_type}` {`id`: $subject})
+    --
+    (`n1`:`${object_type}` {`id`: $object})
+RETURN *;
+```
+
+* Floating Object
+
+```Cypher
+MATCH 
+    (`n0`:`${subject_type}` {`id`: $subject})
+    -[`e01`:`${predicate}`]->
+    (`n1`:`${object_type}`)
+RETURN *;
+```
+
+
+
+###### KuzuDB
+
+Kuzudb has a slightly modified version of the cypher query language. It's slightly more
+specific in labelling nodes with `Node` keyword and edges with the `Edge` keyword. The nodes
+and predicates are slightly more defined as well with a JSON like object specification
+
+
+##### Case 1.
+
+```Cypher
+MATCH 
+    (`n0`:Node {`id`: "${subject}", `category`: "{$subject_type}"})
+    -[`e01`:Edge {`predicate`: {$predicate}"}]->
+    (`n1`:Node {`id`: "${object}", `category`: "{$object_type}"})
+RETURN *;
+```
+
+
+##### Case 2.
+
+
+* Floating Object
+
+```Cypher
+MATCH 
+    (`n0`:Node {`category`: "{$subject_type}"})
+    -[`e01`:Edge {`predicate`: {$predicate}"}]->
+    (`n1`:Node {`id`: "${object}", `category`: "{$object_type}"})
+RETURN *;
+```
+
+* Floating Predicate
+```Cypher
+MATCH 
+    (`n0`:Node {`id`: "${subject}", `category`: "{$subject_type}"})
+    --
+    (`n1`:Node {`id`: "${object}", `category`: "{$object_type}"})
+RETURN *;
+```
+
+* Floating Subject
+
+```Cypher
+MATCH 
+    (`n0`:Node {`id`: "${subject}", `category`: "{$subject_type}"})
+    -[`e01`:Edge {`predicate`: {$predicate}"}]->
+    (`n1`:Node {`category`: "{$object_type}"})
+RETURN *;
+```
+
+
+## Internal notes
+
+We have an internal elasticsearch index for the RTX-KG2 datasource located at the following servers:
+
+* `http://su12:9200/`
+    * `green open rtx_kg2_nodes pH7Zf03uRy2uHUbfZdxj-w  5 0    6698073        0   2.4gb   2.4gb   2.4gb`
+    * `green open rtx_kg2_edges R0DUqL_lQH6oszTFnjN7zA  5 0   26948303        0   9.3gb   9.3gb   9.3gb`
+* `http://transltr.biothings.io:9200`
+    * `green open rtx_kg2_edges                  5_P4GmcKTbmn3oBaSzON8w  5 1  26948303       0  18.6gb   9.3gb   9.3gb`
+    * `green open rtx_kg2_nodes                  IVQx_NmZR4m95z2VkSG_HA  5 1   6698073       0   4.8gb   2.4gb   2.4gb`
+
+* 
