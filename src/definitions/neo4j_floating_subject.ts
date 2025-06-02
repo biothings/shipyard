@@ -60,7 +60,7 @@ export function teardown() {
   graph_db.close();
 }
 
-export default function () {
+export default function (data: Object) {
   const payload: string = neo4j_floating_subject_query(graph_db, 1000);
   const url: string = TestConfiguration["NEO4J_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
