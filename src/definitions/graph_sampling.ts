@@ -81,6 +81,7 @@ export function neo4j_floating_object_query(sampling_database: Database, sample_
 
 
 export function neo4j_floating_predicate_query(sampling_database: Database, sample_size: int) {
+  const samples: Array<{object}> = graph_samples(sampling_database, sample_size)
   const query_statements: array = [];
   for (let graph_sample of samples) {
     const subject_type: string = graph_sample.subject_type
@@ -103,6 +104,7 @@ export function neo4j_floating_predicate_query(sampling_database: Database, samp
 
 
 export function neo4j_floating_subject_query(sampling_database: Database, sample_size: int) {
+  const samples: Array<{object}> = graph_samples(sampling_database, sample_size)
   let query_statements: array = [];
   for (let graph_sample of samples) {
     let subject_type: string = graph_sample.subject_type

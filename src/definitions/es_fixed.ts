@@ -69,6 +69,5 @@ export default function (data: Object) {
   const index: string = "rtx_kg2_edges";
   const payload: string = es_fixed_query(graph_db, __ENV.NUM_SAMPLE, index);
   data.params.timeout = __ENV.HTTP_TIMEOUT;
-  console.log(TestConfiguration["ES_QUERY_URL"][0])
   http.post(TestConfiguration["ES_QUERY_URL"][0], payload, data.params);
 }

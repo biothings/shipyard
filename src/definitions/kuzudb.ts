@@ -4,46 +4,42 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { neo4j_floating_object_query } from './graph_sampling.ts';
+import { neo4j_fixed_query } from './graph_sampling.ts';
 import { TestConfiguration } from './configuration.ts';
 
-const graph_db = sql.open(driver, "/src/data/graph_sample.db");
-
+const graph_db = sql.open(driver, "/src/data/graph_sample.db")
 
 export const options = {
   scenarios: {
     smoke: {
       executor: 'shared-iterations',
       startTime: '0s',
-      gracefulStop: '30s',
-      env: { NUM_SAMPLE: '1', HTTP_TIMEOUT: '90s' },
+      gracefulStop: '10s',
+      env: { NUM_SAMPLE: '1', HTTP_TIMEOUT: '10s' },
       vus: 1,
       iterations: 1,
-      maxDuration: '120s',
+      maxDuration: '20',
     },
     half_load: {
       executor: 'shared-iterations',
-      startTime: '120s',
-      gracefulStop: '30s',
-      env: { NUM_SAMPLE: '500', HTTP_TIMEOUT: '1000s' },
+      startTime: '20s',
+      gracefulStop: '60s',
+      env: { NUM_SAMPLE: '500', HTTP_TIMEOUT: '750s' },
       vus: 15,
       iterations: 100,
-      maxDuration: '60m',
+      maxDuration: '50m',
     },
     full_load: {
       executor: 'shared-iterations',
-      startTime: '60m',
+      startTime: '50m',
       gracefulStop: '60s',
-      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '1500s' },
+      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '1200s' },
       vus: 5,
       iterations: 25,
       maxDuration: '60m',
     }
   },
 };
-
-
-
 
 export function setup() {
   const USERNAME: string = `${__ENV.NEO4J_USERNAME}`;
@@ -60,12 +56,13 @@ export function setup() {
   return { params: params }
 }
 
+
 export function teardown() {
   graph_db.close();
 }
 
-export default function () {
-  const payload: string = neo4j_floating_object_query(graph_db, __ENV.NUM_SAMPLE)
+export default function (data: Object) {
+  const payload: string = neo4j_fixed_query(graph_db, __ENV.NUM_SAMPLE)
   const url: string = TestConfiguration["NEO4J_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
