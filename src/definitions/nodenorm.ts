@@ -45,18 +45,18 @@ export function setup() {
 }
 
 export function teardown() {
-  graph_db.close();
+  curie_db.close();
 }
 
 
-export default nodenorm_elasticsearch (data: Object) {
+export function nodenorm_elasticsearch (data: Object) {
   const url: string = "https://biothings.ci.transltr.io/nodenorm/node";
   const payload: string = elasticsearch_nodenorm_query(curie_db, __ENV.NUM_SAMPLE);
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }
 
-export default nodenorm_redis (data: Object) {
+export function nodenorm_redis (data: Object) {
   const url: string = "https://nodenorm.ci.transltr.io/1.5/get_normalized_nodes";
   const payload: string = redis_nodenorm_query(curie_db, __ENV.NUM_SAMPLE);
   data.params.timeout = __ENV.HTTP_TIMEOUT;
