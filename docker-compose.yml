@@ -1,0 +1,15 @@
+name: shipyard
+services:
+  shipyard:
+    entrypoint: k6 run 
+    command: --help
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    network_mode: host
+    container_name: shipyard-k6
+    ports:
+      - 80:80
+    volumes:
+      - ./src:/src
+
