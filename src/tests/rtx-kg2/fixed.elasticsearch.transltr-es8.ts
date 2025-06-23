@@ -3,8 +3,8 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { es_fixed_query } from './graph_sampling.ts';
-import { TestConfiguration } from './configuration.ts';
+import { es_fixed_query } from '../../lib/graph.ts';
+import { EnvConfiguration } from '../../configuration/environment.ts';
 
 const graph_db = sql.open(driver, "/src/data/graph_sample.db");
 
@@ -68,6 +68,7 @@ export function teardown() {
 export default function (data: Object) {
   const index: string = "rtx_kg2_edges";
   const payload: string = es_fixed_query(graph_db, __ENV.NUM_SAMPLE, index);
+  const url: string = EnvConfiguration["ES_QUERY_URL"]["transltr"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
-  http.post(TestConfiguration["ES_QUERY_URL"][0], payload, data.params);
+  http.post(url, payload, data.params);
 }
