@@ -26,7 +26,7 @@ export function redis_nodenorm_query(sampling_database: Database, sample_size: i
 }
 
 
-export function elasticsearch_nodenorm_query(sampling_database: Database, sample_size: int) {
+export function elasticsearch_nodenorm_api_query(sampling_database: Database, sample_size: int) {
   let curies: Array<{object}> = curie_samples(sampling_database, sample_size);
 
   let elasticsearch_body: Object = {
@@ -35,4 +35,29 @@ export function elasticsearch_nodenorm_query(sampling_database: Database, sample
     fields: ["identifiers", "type"]
   };
   return JSON.stringify(elasticsearch_body);
+}
+
+
+export function elasticsearch_nodenorm_backend_query(sampling_database: Database, sample_size: int, es_index: string) {
+  let curies: Array<{object}> = curie_samples(sampling_database, sample_size)
+
+  let aggregated_statements: array = [];
+  for (let curie_sample of curies) {
+    aggregated_statements.push(JSON.stringify({index: es_index}));
+    aggregated_statements.push(
+      JSON.stringify(
+        {
+          query : {
+            bool : {
+              filter : [
+                {term : { 'identifiers.i' : curie_sample }},
+              ]
+            }
+          }
+        }
+      )
+    );
+  }
+  const payload: string = aggregated_statements.join("\n") + "\n";
+  return payload;
 }
