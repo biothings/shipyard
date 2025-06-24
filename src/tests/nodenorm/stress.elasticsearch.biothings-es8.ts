@@ -12,7 +12,7 @@ export const options = {
   scenarios: {
     full_load: {
       executor: 'shared-iterations',
-      startTime: '1m',
+      startTime: '0',
       gracefulStop: '5s',
       env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '20s'},
       vus: 5,
@@ -21,7 +21,7 @@ export const options = {
     },
     half_load: {
       executor: 'shared-iterations',
-      startTime: '2m45s',
+      startTime: '1m',
       gracefulStop: '30s',
       env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '20s'},
       vus: 5,
@@ -47,9 +47,9 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const index: string = "nodenorm";
+  const index: string = "nodenorm_20250507_4ibdxry7";
   const payload: string = elasticsearch_nodenorm_backend_query(curie_db, __ENV.NUM_SAMPLE, index);
-  const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["su12"]
+  const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["su12"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }
