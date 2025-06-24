@@ -22,13 +22,12 @@ NCATS Translator services
 
 Implemented API's
 
-* []
-
-Targetted API's
-
 * nodenorm [renci](https://nodenormalization-sri.renci.org/docs)
 * nodenorm [scripps](https://pending.biothings.io/nodenorm)
 
+Targetted API's
+
+* []
 
 
 
@@ -42,36 +41,62 @@ following structure in the repository
 .
 ├── docker
 └── src
+    ├── configuration
     ├── data
-    ├── definitions
+    ├── lib
+    ├── tests
     └── typings
 ```
 
-Specific to k6, the load tests (and any tests for that matter) exist in the `~/src/definitions`
+Specific to k6, the load tests (and any tests for that matter) exist in the `~/src/tests`
 directory. k6 expects the test definitions to be written in either javascript or typescript. The
 best overview (in my opinion) for the test structure can be found
 [here](https://grafana.com/docs/k6/latest/using-k6/test-lifecycle/) on the k6 documentation. 
 
-So we define all our tests and test configuration within the `~/src/definitions` and then we build
+So we define all our tests and test configuration within the `~/src/tests` and then we build
 k6 as a docker image
 
 Now to run the tests. Simply build and then run docker container to automatically run the k6 tests
+
+#### All Test Definitions
+
+We divide the tests by the entity we wish to test against. I want to stop re-inventing the wheel
+when evaulating various databases, API's, webservers, et cetera. So the tests are grouped by the
+entity we want to evaluate against. For example, the database benchmarking using the RTX-KG2
+knowledge graph dataset are all grouped under the `rtx-kg2` directory. The test names themselves
+specify the type of query, the database, and a server location.
+
+```shell
+src/tests/
+├── nodenorm
+│   ├── stress.elasticsearch.biothings-ci.ts
+│   ├── stress.elasticsearch.biothings-es8.ts
+│   ├── stress.elasticsearch.transltr-es8.ts
+│   └── stress.redis.renci.ts
+└── rtx-kg2
+    ├── fixed.elasticsearch.biothings-es8.ts
+    ├── fixed.elasticsearch.transltr-es8.ts
+    ├── fixed.neo4j.su08.ts
+    ├── floating-object.neo4j.su08.ts
+    ├── floating-predicate.neo4j.su08.ts
+    └── floating-subject.neo4j.su08.ts
+```
 
 
 ###### Build and Run
 
 ```shell
 # generic build & run command
-docker compose run --build --rm --entrypoint="k6 run /src/definitions/<testcase>.ts" shipyard 
+docker compose run --build --rm --entrypoint="k6 run /src/tests/<testcase>.ts" shipyard 
 
 # build & run command with HTTP debugging enabled
-docker compose run --build --rm --entrypoint="k6 run --http-debug='full' /src/definitions/<testcase>.ts" shipyard
+docker compose run --build --rm --entrypoint="k6 run --http-debug='full' /src/tests/<testcase>.ts" shipyard
 
 # build & run command with full test summary
-docker compose run --build --rm --entrypoint="k6 run --summary-mode='full' /src/definitions/<testcase>.ts" shipyard
+docker compose run --build --rm --entrypoint="k6 run --summary-mode='full' /src/tests/<testcase>.ts" shipyard
 
 # build & run command providing neo4j credentials via environment variables
-docker compose run --build --rm --entrypoint="k6 run -e NEO4J_USERNAME=<> -e NEO4J_PASSWORD=<> /src/definitions/<neo4j_testcase>.ts" shipyard
+docker compose run --build --rm --entrypoint="k6 run -e NEO4J_USERNAME=<> -e NEO4J_PASSWORD=<> /src/tests/<neo4j_testcase>.ts" shipyard
 ```
 
 
@@ -79,16 +104,16 @@ docker compose run --build --rm --entrypoint="k6 run -e NEO4J_USERNAME=<> -e NEO
 
 ```shell
 # generic run command
-docker compose run --rm --entrypoint="k6 run /src/definitions/<testcase>.ts" shipyard
+docker compose run --rm --entrypoint="k6 run /src/tests/<testcase>.ts" shipyard
 
 # run command with HTTP debugging enabled
-docker compose run --rm --entrypoint="k6 run --http-debug='full' /src/definitions/<testcase>.ts" shipyard
+docker compose run --rm --entrypoint="k6 run --http-debug='full' /src/tests/<testcase>.ts" shipyard
 
 # build & run command with full test summary
-docker compose run --rm --entrypoint="k6 run --summary-mode='full' /src/definitions/<testcase>.ts" shipyard
+docker compose run --rm --entrypoint="k6 run --summary-mode='full' /src/tests/<testcase>.ts" shipyard
 
 # run command providing neo4j credentials via environment variables
-docker compose run --rm --entrypoint="k6 run -e NEO4J_USERNAME=<> -e NEO4J_PASSWORD=<> /src/definitions/<testcase>.ts" shipyard
+docker compose run --rm --entrypoint="k6 run -e NEO4J_USERNAME=<> -e NEO4J_PASSWORD=<> /src/tests/<testcase>.ts" shipyard
 ```
 
 
@@ -201,7 +226,6 @@ due to the structure of the indices we've created.
                 "term" : { "subject.keyword" : "{{subject}}"},
                 "term" : { "object.keyword" : "{{object}}"},
                 "term" : { "predicate.keyword" : "{{predicate}}"}
-                }
             }
         }
     }
