@@ -4,8 +4,8 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { neo4j_floating_subject_query } from './graph_sampling.ts';
-import { TestConfiguration } from './configuration.ts';
+import { neo4j_floating_predicate_query } from '../../lib/graph.ts';
+import { EnvConfiguration } from '../../configuration/environment.ts';
 
 const graph_db = sql.open(driver, "/src/data/graph_sample.db");
 
@@ -24,7 +24,7 @@ export const options = {
       executor: 'shared-iterations',
       startTime: '30s',
       gracefulStop: '60s',
-      env: { NUM_SAMPLE: '500', HTTP_TIMEOUT: '1000s' },
+      env: { NUM_SAMPLE: '500', HTTP_TIMEOUT: '750s' },
       vus: 15,
       iterations: 100,
       maxDuration: '60m',
@@ -33,7 +33,7 @@ export const options = {
       executor: 'shared-iterations',
       startTime: '60m',
       gracefulStop: '60s',
-      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '1500s' },
+      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '1200s' },
       vus: 5,
       iterations: 25,
       maxDuration: '60m',
@@ -60,9 +60,9 @@ export function teardown() {
   graph_db.close();
 }
 
-export default function (data: Object) {
-  const payload: string = neo4j_floating_subject_query(graph_db, 1000);
-  const url: string = TestConfiguration["NEO4J_QUERY_URL"];
+export default function () {
+  const payload: string = neo4j_floating_predicate_query(graph_db, __ENV.NUM_SAMPLE)
+  const url: string = EnvConfiguration["NEO4J_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }

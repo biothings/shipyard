@@ -4,8 +4,8 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { neo4j_floating_object_query } from './graph_sampling.ts';
-import { TestConfiguration } from './configuration.ts';
+import { neo4j_floating_object_query } from '../../lib/graph.ts';
+import { EnvConfiguration } from '../../configuration/environment.ts';
 
 const graph_db = sql.open(driver, "/src/data/graph_sample.db");
 
@@ -66,7 +66,7 @@ export function teardown() {
 
 export default function () {
   const payload: string = neo4j_floating_object_query(graph_db, __ENV.NUM_SAMPLE)
-  const url: string = TestConfiguration["NEO4J_QUERY_URL"];
+  const url: string = EnvConfiguration["NEO4J_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }
