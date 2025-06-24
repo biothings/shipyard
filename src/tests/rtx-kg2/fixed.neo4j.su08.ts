@@ -18,7 +18,7 @@ export const options = {
       env: { NUM_SAMPLE: '1', HTTP_TIMEOUT: '10s' },
       vus: 1,
       iterations: 1,
-      maxDuration: '20',
+      maxDuration: '20s',
     },
     half_load: {
       executor: 'shared-iterations',
