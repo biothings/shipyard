@@ -1,17 +1,4 @@
-import sql from "k6/x/sql";
-
-
-function curie_samples(sampling_database: Database, sample_size: int) {
-  const sample_query: string = "SELECT * FROM nodenorm_curie WHERE rowid IN (SELECT rowid FROM nodenorm_curie ORDER BY random() LIMIT $1)";
-  const samples: Array<{object}> = sampling_database.query(sample_query, sample_size);
-
-  let curies: array = [];
-  for (let sample of samples) {
-    curies.push(sample["curie"]);
-  }
-  return curies;
-}
-
+import { curie_samples } from './sampling.ts';
 
 export function redis_nodenorm_query(sampling_database: Database, sample_size: int) {
   let curies: Array<{object}> = curie_samples(sampling_database, sample_size);
