@@ -114,3 +114,77 @@ export function neo4j_floating_subject_query(sampling_database: Database, sample
   const payload: string = JSON.stringify({statements: query_statements});
   return payload;
 }
+
+
+export function plover_fixed_query(sampling_database: Database, sample_size: int) {
+  let payload_structure: object = {
+    message: { 
+      query_graph: { 
+        edges: {},
+        nodes: {},
+      } 
+    } 
+  };
+
+  const samples: Array<{object}> = graph_samples(sampling_database, sample_size);
+  samples.forEach( (graph_sample, index) => {
+      const edge_label: string = `e${ index }`;
+      const node_label_subject: string = `n0-${ edge_label }`;
+      const node_label_object: string = `n1-${ edge_label }`;
+
+      let edge: object = {
+        subject: node_label_subject,
+        object: node_label_object,
+        predicates: [ graph_sample.predicate ],
+      };
+
+      const subject_node: object = {
+        ids: [graph_sample.subject],
+        categories: [graph_sample.subject_type],
+      };
+
+      const object_node: object = {
+        ids: [graph_sample.object],
+        categories: [graph_sample.object_type],
+      };
+      payload_structure.message.query_graph.edges[edge_label] = edge;
+      payload_structure.message.query_graph.nodes[node_label_subject] = subject_node;
+      payload_structure.message.query_graph.nodes[node_label_object] = object_node;
+  });
+  
+  return payload_structure;
+}
+
+export function trapi_batch_query(sampling_database: Database, sample_size: int) {
+
+    qg = {
+        "nodes": {
+            "n00": {"ids": list(node_ids)},
+            "n01": {"categories": ["biolink:NamedThing"]},
+        },
+        "edges": {"e00": {"subject": "n00", "object": "n01"}},
+    }
+
+  let payload_structure: object = {
+    message: { 
+      query_graph: { 
+        edges: {
+          e0: { subject: "n0", object: "n1" }
+        },
+        nodes: {
+          n0: { ids: [] },
+          n1: { categories: ["biolink.NamedThing"]}
+        },
+      } 
+    } 
+  };
+
+  const samples: Array<{object}> = graph_samples(sampling_database, sample_size);
+  let node_ids: Array<{string}> = []
+  samples.forEach( graph_sample => {
+      payload_structure.message.query_graph.nodes.ids.push(graph_sample.subject);
+      payload_structure.message.query_graph.nodes.ids.push(graph_sample.object);
+  });
+
+  
+  return payload_structure;
