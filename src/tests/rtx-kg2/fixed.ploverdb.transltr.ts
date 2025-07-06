@@ -3,7 +3,7 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { trapi_fixed_query } from '../../lib/trapi.ts';
+import { plover_fixed_query } from '../../lib/graph.ts';
 import { EnvConfiguration } from '../../configuration/environment.ts';
 
 const graph_db = sql.open(driver, "/src/data/graph_sample.db");
@@ -57,7 +57,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: string = trapi_fixed_query(graph_db, __ENV.NUM_SAMPLE);
+  const payload: string = plover_fixed_query(graph_db, __ENV.NUM_SAMPLE);
   const url: string = EnvConfiguration["PLOVERDB_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);

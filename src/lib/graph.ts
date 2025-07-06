@@ -155,7 +155,7 @@ export function plover_fixed_query(sampling_database: Database, sample_size: int
   return payload_structure;
 }
 
-export function trapi_batch_query(sampling_database: Database, sample_size: int) {
+export function plover_batch_query(sampling_database: Database, sample_size: int) {
 
     qg = {
         "nodes": {
@@ -188,3 +188,4 @@ export function trapi_batch_query(sampling_database: Database, sample_size: int)
 
   
   return payload_structure;
+}
