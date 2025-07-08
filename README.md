@@ -1,6 +1,6 @@
 ### Shipyard
 
-Repository for load testing various resources targetting infrastructure with
+Repository for load testing various resources targetting infrastructure within
 the NCATS Translator ecosystem
 
 Currently we're wanting to stress different datastores with a large graph datasource
@@ -24,6 +24,7 @@ Implemented API's
 
 * nodenorm [renci](https://nodenormalization-sri.renci.org/docs)
 * nodenorm [scripps](https://pending.biothings.io/nodenorm)
+* ploverdb [RTX](https://kg2cploverdb.ci.transltr.io/query)
 
 Targetted API's
 
@@ -74,9 +75,11 @@ src/tests/
 │   ├── stress.elasticsearch.transltr-es8.ts
 │   └── stress.redis.renci.ts
 └── rtx-kg2
+    ├── batch.ploverdb.transltr.ts
     ├── fixed.elasticsearch.biothings-es8.ts
     ├── fixed.elasticsearch.transltr-es8.ts
     ├── fixed.neo4j.su08.ts
+    ├── fixed.ploverdb.transltr.ts
     ├── floating-object.neo4j.su08.ts
     ├── floating-predicate.neo4j.su08.ts
     └── floating-subject.neo4j.su08.ts
