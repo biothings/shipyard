@@ -53,3 +53,8 @@ export default function (data: Object) {
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }
+
+
+export function handleSummary(data) {
+  return { "/testoutput/stress.redis.renci.ts.json": JSON.stringify(data) };
+}

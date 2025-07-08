@@ -55,3 +55,7 @@ export default function (data: Object) {
   http.post(url, payload, data.params);
 }
 
+
+export function handleSummary(data) {
+  return { "/testoutput/stress.elasticsearch.biothings-ci.ts.json": JSON.stringify(data) };
+}

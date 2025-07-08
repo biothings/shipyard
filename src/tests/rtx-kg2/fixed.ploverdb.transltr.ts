@@ -15,23 +15,14 @@ export const options = {
       executor: 'shared-iterations',
       startTime: '0s',
       gracefulStop: '15s',
-      env: { NUM_SAMPLE: '3', HTTP_TIMEOUT: '15s'},
+      env: { NUM_SAMPLE: '3', HTTP_TIMEOUT: '10s'},
       vus: 1,
       iterations: 1,
-      maxDuration: '30s',
-    },
-    half_load: {
-      executor: 'shared-iterations',
-      startTime: '40s',
-      gracefulStop: '30s',
-      env: { NUM_SAMPLE: '500', HTTP_TIMEOUT: '120s'},
-      vus: 15,
-      iterations: 50,
-      maxDuration: '10m',
+      maxDuration: '10s',
     },
     full_load: {
       executor: 'shared-iterations',
-      startTime: '10m',
+      startTime: '20s',
       gracefulStop: '30s',
       env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '300s'},
       vus: 5,
@@ -63,3 +54,6 @@ export default function (data: Object) {
   http.post(url, payload, data.params);
 }
 
+export function handleSummary(data) {
+  return { "/testoutput/fixed.ploverdb.transltr.ts.json": JSON.stringify(data) };
+}
