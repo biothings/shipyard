@@ -70,3 +70,7 @@ export default function () {
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }
+
+export function handleSummary(data) {
+  return { "/testoutput/floating-object.neo4j.su08.ts.json": JSON.stringify(data) };
+}
