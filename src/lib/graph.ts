@@ -118,12 +118,12 @@ export function neo4j_floating_subject_query(sampling_database: Database, sample
 
 export function plover_fixed_query(sampling_database: Database, sample_size: int) {
   let payload_structure: object = {
-    message: { 
-      query_graph: { 
+    message: {
+      query_graph: {
         edges: {},
         nodes: {},
-      } 
-    } 
+      }
+    }
   };
 
   const samples: Array<{object}> = graph_samples(sampling_database, sample_size);
@@ -151,23 +151,15 @@ export function plover_fixed_query(sampling_database: Database, sample_size: int
       payload_structure.message.query_graph.nodes[node_label_subject] = subject_node;
       payload_structure.message.query_graph.nodes[node_label_object] = object_node;
   });
-  
+
   return payload_structure;
 }
 
 export function plover_batch_query(sampling_database: Database, sample_size: int) {
 
-    qg = {
-        "nodes": {
-            "n00": {"ids": list(node_ids)},
-            "n01": {"categories": ["biolink:NamedThing"]},
-        },
-        "edges": {"e00": {"subject": "n00", "object": "n01"}},
-    }
-
   let payload_structure: object = {
-    message: { 
-      query_graph: { 
+    message: {
+      query_graph: {
         edges: {
           e0: { subject: "n0", object: "n1" }
         },
@@ -175,17 +167,18 @@ export function plover_batch_query(sampling_database: Database, sample_size: int
           n0: { ids: [] },
           n1: { categories: ["biolink.NamedThing"]}
         },
-      } 
-    } 
+      }
+    }
   };
 
   const samples: Array<{object}> = graph_samples(sampling_database, sample_size);
   let node_ids: Array<{string}> = []
   samples.forEach( graph_sample => {
-      payload_structure.message.query_graph.nodes.ids.push(graph_sample.subject);
-      payload_structure.message.query_graph.nodes.ids.push(graph_sample.object);
+      node_ids.push(graph_sample.subject);
+      node_ids.push(graph_sample.object);
   });
+  payload_structure.message.query_graph.nodes.ids = node_ids
 
-  
+
   return payload_structure;
-}
+}m
