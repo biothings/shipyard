@@ -1,0 +1,10 @@
+{
+  "name": "Shipyard D",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.dev.yml"
+  ],
+  "service": "shipyard",
+  "workspaceFolder": "/src",
+  "postCreateCommand": "cd ./src && npm install --save-dev typescript @types/k6"
+}

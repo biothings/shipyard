@@ -1,0 +1,7 @@
+name: shipyard
+services:
+  shipyard:
+    entrypoint: tail -f /dev/null
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.dev

@@ -3,3 +3,5 @@
 
 # Data
 src/data
+
+**/node_modules/
