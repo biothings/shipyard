@@ -5,3 +5,4 @@
 src/data
 
 **/node_modules/
+src/testoutput/**/*.json
