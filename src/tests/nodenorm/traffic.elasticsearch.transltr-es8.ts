@@ -5,7 +5,7 @@ import sql from "k6/x/sql";
 import driver from "k6/x/sql/driver/sqlite3";
 
 import { EnvConfiguration } from '../../configuration/environment.ts';
-import { elasticsearch_nodenorm_api_query } from '../../lib/curie.ts';
+import { elasticsearch_nodenorm_backend_query } from '../../lib/curie.ts';
 import { sampleCurieTrafficValue } from '../../lib/traffic.ts';
 import { traffic_curie_sizes } from '../../lib/sampling.ts';
 
@@ -56,14 +56,14 @@ export default function (data) {
     data.params.chunkInterval[1] += intervalDifference;
   }
 
-
-  const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["ci"]
-  const payload: string = elasticsearch_nodenorm_api_query(curie_db, __ENV.NUM_SAMPLE);
+  const index: string = "nodenorm_20250405_roofpu9f";
+  const payload: string = elasticsearch_nodenorm_backend_query(curie_db, __ENV.NUM_SAMPLE, index);
+  const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["transltr"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }
 
 
 export function handleSummary(data) {
-  return { "/testoutput/traffic.elasticsearch.biothings-ci.ts.json": JSON.stringify(data) };
+  return { "/testoutput/traffic.elasticsearch.transltr-es8.ts.json": JSON.stringify(data) };
 }

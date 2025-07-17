@@ -6,54 +6,47 @@
  * sections
  * 
  */
+export function curieTrafficHistogram(curies: number[]): { bins: number[][], probabilities: number[] } {
+  const minimumCuries = 1;
+  const maximumCuries = 3000;
+  const numberBins = 10;
+  const binWidth = (maximumCuries - minimumCuries) / numberBins;
 
-import Math
-
-
-export function curieTrafficHistogram(curies: int[]): { bins: int[], probablities: float[] } {
-  const min = 0;
-  const max = 3000;
-  const numBins = 100;
-  const binWidth = (max - min) / numBins;
-
-  const bins = [];
-  const counts = [];
-
-  for (let index = 0; index < numBins; index++) {
-    const start = min + i * binWidth;
-    const end = start + binWidth;
-
-    let count = 0;
-    for (const curie of curies) {
-      if curie >= start && curie < end) {
-        count++;
-      }
+  let count: number = 0;
+  for (const curie of curies) {
+    if (minimumCuries <= curie && curie < binWidth) {
+      count++;
     }
-    bins.push([start, end]);
-    counts.push(count);
   }
 
-  const probablities = counts.map(count => count / curies.length);
-  return { bins, probablities };
+  const probabilities: number[] = [0, 1];
+  // probabilities.push(count / curies.length);
+  // probabilities.push(1 - probabilities[0]);
+  const bins: number[][] = [[minimumCuries, minimumCuries + binWidth], [maximumCuries / 3, maximumCuries]];
+  return { bins, probabilities };
 }
 
 
+export function sampleCurieTrafficValue(curies: number[]): number {
+  const {bins, probabilities} = curieTrafficHistogram(curies);
 
-export function sampleCurieTrafficValue(curies: int[]): int {
-  const {bins, probablities} = curieTrafficHistogram(curies);
+  let cumulative = 0;
+  const cumulativeProbabilities: number[] = [];
+  for (const prob of probabilities) {
+    cumulative += prob;
+    cumulativeProbabilities.push(cumulative);
+  }
 
-  const cumulative = probablities.map((p, i) => {
-    return i === 0 ? p : cumulative[i - 1] + p;
-  });
+  let histBinIndex = 0;
 
   const sample = Math.random();
-  let selectedBinIndex = 0;
-  for (let index = 0; index < cumulative.length; index++) {
-    if (random <= cumulative[i]) {
-      selectedBinIndex = index;
+  for (let index = 0; index < cumulativeProbabilities.length; index++) {
+    if (sample <= cumulativeProbabilities[index]) {
+      histBinIndex = index;
       break;
     }
   }
-  const [start, end] = bins[selectedBinIndex];
-  return start + (end - start) * Math.random();
+  const [binStart, binEnd] = bins[histBinIndex];
+  const histSample: number = binStart + (binEnd - binStart) * Math.random();
+  return Math.round(histSample);
 }

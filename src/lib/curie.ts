@@ -13,13 +13,14 @@ export function redis_nodenorm_query(sampling_database: Database, sample_size: i
 }
 
 
-export function elasticsearch_nodenorm_api_query(sampling_database: Database, sample_size: int) {
+export function elasticsearch_nodenorm_api_query(sampling_database: Database, sample_size: number) {
   let curies: Array<{object}> = curie_samples(sampling_database, sample_size);
 
   let elasticsearch_body: Object = {
     ids: curies,
     scopes: ["identifiers.i"],
-    fields: ["identifiers", "type"]
+    fields: ["identifiers", "type"],
+    size: Number(sample_size)
   };
   return JSON.stringify(elasticsearch_body);
 }
