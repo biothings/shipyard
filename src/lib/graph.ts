@@ -1,7 +1,7 @@
 import { graph_samples } from './sampling.ts';
 import {Database, Row} from "k6/x/sql";
 
-type FloatingField = 'subject' | 'object' | 'predicate';
+export type FloatingField = 'subject' | 'object' | 'predicate';
 
 function prepareSample (sample: Row, floatingField: FloatingField) {
   const fields = ['subject', 'object', 'predicate']
