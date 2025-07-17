@@ -4,18 +4,10 @@ import {graph_db} from "../../../configuration/db.ts";
 import {EnvConfiguration} from "../../../configuration/environment.ts";
 import http from "k6/http";
 
-
-export { options } from '../../../configuration/options.ts'
-export { setup } from '../../../configuration/setup.ts'
-export { graphDbTeardown as teardown } from '../../../configuration/teardown.ts'
-
 const INDEX: string = "rtx_kg2_edges_merged";
 
 
-export const getMain = (floatingField: FloatingField) => (data: LoadPayload)  => {
-
-  // use merged index
-  const floatingField = 'subject'
+const getMain = (floatingField: FloatingField) => (data: LoadPayload)  => {
   const querier = generateEsFloatingQuerier(floatingField)
   const payload: string = querier(graph_db, __ENV.NUM_SAMPLE, INDEX);
 
@@ -25,6 +17,27 @@ export const getMain = (floatingField: FloatingField) => (data: LoadPayload)  =>
 }
 
 
-function handleSummary(data) {
-  return { './testoutput/rtx-kg2/floating-subject-elasticsearch.biothings-es8.ts.json' : JSON.stringify(data) };
+const getSummaryHandler = (floatingField: FloatingField) => (data) => {
+  return { [`./testoutput/rtx-kg2/floating-${floatingField}-elasticsearch.biothings-es8.ts.json`] : JSON.stringify(data) };
 }
+
+
+// pass generated main and handleSummary methods based on floating fields given
+const allModules = (floatingField: FloatingField) => {
+  const main = getMain(floatingField)
+  const handleSummary = getSummaryHandler(floatingField)
+
+  return {
+    main,
+    handleSummary,
+  }
+}
+
+
+export { options } from '../../../configuration/options.ts'
+export { setup } from '../../../configuration/setup.ts'
+export { graphDbTeardown as teardown } from '../../../configuration/teardown.ts'
+
+export default allModules
+
+
