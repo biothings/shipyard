@@ -1,11 +1,3 @@
-/*
- * Generate a statistical distribution based off the traffic * logs provided by nodenorm. 
- * 
- * Takes the number of curies over a one week period and we
- * aggregate all of them and chunk them into 5 minute 
- * sections
- * 
- */
 export function curieTrafficHistogram(curies: number[]): { bins: number[][], probabilities: number[] } {
   const minimumCuries = 1;
   const maximumCuries = 3000;
@@ -20,8 +12,6 @@ export function curieTrafficHistogram(curies: number[]): { bins: number[][], pro
   }
 
   const probabilities: number[] = [0, 1];
-  // probabilities.push(count / curies.length);
-  // probabilities.push(1 - probabilities[0]);
   const bins: number[][] = [[minimumCuries, minimumCuries + binWidth], [maximumCuries / 3, maximumCuries]];
   return { bins, probabilities };
 }

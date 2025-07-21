@@ -1,38 +1,39 @@
-import { curie_samples } from './sampling.ts';
+import { curieSamples } from './sampling.ts';
+import { Database, Row } from "k6/x/sql";
 
-export function redis_nodenorm_query(sampling_database: Database, sample_size: int) {
-  let curies: Array<{object}> = curie_samples(sampling_database, sample_size);
+export function redisNodeNormQuery(samplingDatabase: Database, sampleSize: number) {
+  let curies: Array<Object> = curieSamples(samplingDatabase, sampleSize);
 
-  let nodenorm_body: Object = {
+  let nodenormBody: Object = {
     curies: curies,
     conflate: false,
     description: false,
     drug_chemical_conflate: false,
   };
-  return JSON.stringify(nodenorm_body);
+  return JSON.stringify(nodenormBody);
 }
 
 
-export function elasticsearch_nodenorm_api_query(sampling_database: Database, sample_size: number) {
-  let curies: Array<{object}> = curie_samples(sampling_database, sample_size);
+export function elasticsearchNodenormAPIQuery(samplingDatabase: Database, sampleSize: number) {
+  let curies: Array<{object}> = curieSamples(samplingDatabase, sampleSize);
 
-  let elasticsearch_body: Object = {
+  let elasticsearchBody: Object = {
     ids: curies,
     scopes: ["identifiers.i"],
     fields: ["identifiers", "type"],
-    size: Number(sample_size)
+    size: Number(sampleSize)
   };
-  return JSON.stringify(elasticsearch_body);
+  return JSON.stringify(elasticsearchBody);
 }
 
 
-export function elasticsearch_nodenorm_backend_query(sampling_database: Database, sample_size: int, es_index: string) {
-  let curies: Array<{object}> = curie_samples(sampling_database, sample_size)
+export function elasticsearchNodenormBackendQuery(samplingDatabase: Database, sampleSize: int, es_index: string) {
+  let curies: Array<{object}> = curieSamples(samplingDatabase, sampleSize)
 
-  let aggregated_statements: array = [];
+  let aggregatedStatements: Array<Object> = [];
   for (let curie_sample of curies) {
-    aggregated_statements.push(JSON.stringify({index: es_index}));
-    aggregated_statements.push(
+    aggregatedStatements.push(JSON.stringify({index: es_index}));
+    aggregatedStatements.push(
       JSON.stringify(
         {
           query : {
@@ -46,6 +47,6 @@ export function elasticsearch_nodenorm_backend_query(sampling_database: Database
       )
     );
   }
-  const payload: string = aggregated_statements.join("\n") + "\n";
+  const payload: string = aggregatedStatements.join("\n") + "\n";
   return payload;
 }
