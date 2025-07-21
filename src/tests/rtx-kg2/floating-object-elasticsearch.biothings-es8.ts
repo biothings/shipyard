@@ -1,7 +1,7 @@
 import allModules from "./floating-es-meta/esFloatingMetaQuery.ts";
 
-const {main, handleSummary } = allModules('object')
+const { main, handleSummary } = allModules("object");
 
 export * from "./floating-es-meta/esFloatingMetaQuery.ts";
-export { handleSummary }
-export default main
+export { handleSummary };
+export default main;
