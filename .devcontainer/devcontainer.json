@@ -1,0 +1,10 @@
+{
+  "name": "Shipyard D",
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.dev.yml"
+  ],
+  "service": "shipyard",
+  "workspaceFolder": "/app",
+  "postStartCommand": "cd ./src && npm install --save-dev eslint @eslint/js typescript typescript-eslint @types/k6 eslint-plugin-prettier eslint-config-prettier --save-exact prettier"
+}
