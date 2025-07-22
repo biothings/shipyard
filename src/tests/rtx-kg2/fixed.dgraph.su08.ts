@@ -6,6 +6,8 @@ import driver from "k6/x/sql/driver/sqlite3";
 import { dgraphFixedQuery } from '../../lib/graph.ts';
 import { EnvConfiguration } from '../../configuration/environment.ts';
 
+
+
 const graphDB = sql.open(driver, "/src/data/graph_sample.db");
 
 
@@ -13,7 +15,7 @@ export const options = {
   scenarios: {
     full_load: {
       executor: 'shared-iterations',
-      startTime: '22m',
+      startTime: '0m',
       gracefulStop: '30s',
       env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '300s'},
       vus: 5,

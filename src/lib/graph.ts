@@ -1,4 +1,6 @@
 import { graph_samples } from './sampling.ts';
+import { TextEncoder } from 'k6/x/encoding';
+
 
 export function es_fixed_query(samplingDatabase: Database, sampleSize: int, es_index: string) {
   let samples: Array<{object}> = graph_samples(samplingDatabase, sampleSize)
@@ -198,6 +200,8 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: int, es
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
-  const encodedPayload: Uint8Array = new TextEncoder().encode(payload);
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
   return encodedPayload;
 }
