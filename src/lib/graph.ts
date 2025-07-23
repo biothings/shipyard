@@ -1,5 +1,54 @@
+import {TextEncoder} from 'k6/x/encoding';
+import {Database, Row} from "k6/x/sql";
+
 import { graph_samples } from './sampling.ts';
-import { TextEncoder } from 'k6/x/encoding';
+
+export type FloatingField = 'subject' | 'object' | 'predicate';
+
+function prepareSample (sample: Row, floatingField: FloatingField) {
+  const fields = ['subject', 'object', 'predicate']
+  const filter = fields.reduce((arr, field) => {
+    if (field == floatingField) {
+      return arr
+    }
+
+    return [
+        ...arr,
+      {
+        term: {
+          [field + `${field === 'predicate' ? '' : '.id'}` +'.keyword']: sample[field]
+        }
+      }
+    ]
+  }, [])
+
+
+  return JSON.stringify(
+        {
+          query : {
+            bool : {
+              filter
+            }
+          }
+        }
+      )
+}
+
+
+
+export const generateEsFloatingQuerier = (floatingField: FloatingField) => (sampling_database: Database, sample_size: string, es_index: string) => {
+  const samples = graph_samples(sampling_database, sample_size);
+
+  const aggregated_statements = samples.reduce((arr, sample) => {
+    return ([
+        ...arr,
+      JSON.stringify({index: es_index}),
+       prepareSample(sample, floatingField)
+    ])
+  }, [])
+
+  return aggregated_statements.join("\n") + "\n";
+}
 
 
 export function es_fixed_query(samplingDatabase: Database, sampleSize: int, es_index: string) {
