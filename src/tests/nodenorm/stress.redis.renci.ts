@@ -8,7 +8,6 @@ import { EnvConfiguration } from '../../configuration/environment.ts';
 
 const curie_db = sql.open(driver, "/src/data/nodenorm_curie.db");
 
-
 export const options = {
   scenarios: {
     full_load: {

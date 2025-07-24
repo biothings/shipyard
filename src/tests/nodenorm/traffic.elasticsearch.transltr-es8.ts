@@ -7,7 +7,7 @@ import driver from "k6/x/sql/driver/sqlite3";
 import { EnvConfiguration } from '../../configuration/environment.ts';
 import { elasticsearch_nodenorm_backend_query } from '../../lib/curie.ts';
 import { sampleCurieTrafficValue } from '../../lib/traffic.ts';
-import { traffic_curie_sizes } from '../../lib/sampling.ts';
+import { trafficCurieSizes } from '../../lib/sampling.ts';
 
 const curie_db = sql.open(driver, "/src/data/nodenorm_curie.db");
 const traffic_db = sql.open(driver, "/src/data/traffic.db");
@@ -44,7 +44,7 @@ export function teardown() {
 
 export default function (data) {
   if (exec.instance.currentTestRunDuration > data.params.chunkInterval[1]) {
-    const curieSizeSampling = traffic_curie_sizes(traffic_db, -1);
+    const curieSizeSampling = trafficCurieSizes(traffic_db, -1);
     let trafficValue = sampleCurieTrafficValue(curieSizeSampling);
     if (trafficValue > 1000) {
       trafficValue = 1000;

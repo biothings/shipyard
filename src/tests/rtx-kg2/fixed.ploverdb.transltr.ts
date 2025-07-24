@@ -11,18 +11,9 @@ const graphDB = sql.open(driver, "/src/data/graph_sample.db");
 
 export const options = {
   scenarios: {
-    smoke: {
-      executor: 'shared-iterations',
-      startTime: '0s',
-      gracefulStop: '15s',
-      env: { NUM_SAMPLE: '3', HTTP_TIMEOUT: '10s'},
-      vus: 1,
-      iterations: 1,
-      maxDuration: '10s',
-    },
     full_load: {
       executor: 'shared-iterations',
-      startTime: '20s',
+      startTime: '0s',
       gracefulStop: '30s',
       env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '300s'},
       vus: 5,

@@ -12,7 +12,7 @@ export const options = {
   scenarios: {
     full_load: {
       executor: 'shared-iterations',
-      startTime: '0',
+      startTime: '0s',
       gracefulStop: '5s',
       env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '20s'},
       vus: 5,
