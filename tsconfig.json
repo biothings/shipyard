@@ -4,6 +4,7 @@
     "module": "ES6",
     "paths": {
       "k6/x/sql": ["./src/typings/xk6-sql/index.d.ts"]
-    }
+    },
+    "allowImportingTsExtensions": true
   }
 }

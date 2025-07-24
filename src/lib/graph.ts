@@ -1,7 +1,55 @@
-import { graphSamples } from './sampling.ts';
-import { Database } from "k6/x/sql";
+import {graphSamples} from './sampling.ts';
+import {Database, Row} from "k6/x/sql";
 
-export function es_fixed_query(samplingDatabase: Database, sampleSize: number, esIndex: string) {
+export type FloatingField = 'subject' | 'object' | 'predicate';
+
+function prepareSample (sample: Row, floatingField: FloatingField) {
+  const fields = ['subject', 'object', 'predicate']
+  const filter = fields.reduce((arr, field) => {
+    if (field == floatingField) {
+      return arr
+    }
+
+    return [
+        ...arr,
+      {
+        term: {
+          [field + `${field === 'predicate' ? '' : '.id'}` +'.keyword']: sample[field]
+        }
+      }
+    ]
+  }, [])
+
+
+  return JSON.stringify(
+        {
+          query : {
+            bool : {
+              filter
+            }
+          }
+        }
+      )
+}
+
+
+
+export const generateEsFloatingQuerier = (floatingField: FloatingField) => (sampling_database: Database, sample_size: string, es_index: string) => {
+  const samples = graphSamples(sampling_database, sample_size);
+
+  const aggregated_statements = samples.reduce((arr, sample) => {
+    return ([
+        ...arr,
+      JSON.stringify({index: es_index}),
+       prepareSample(sample, floatingField)
+    ])
+  }, [])
+
+  return aggregated_statements.join("\n") + "\n";
+}
+
+
+export function esFixedQuery(samplingDatabase: Database, sampleSize: number, esIndex: string) {
   let samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize)
 
   let aggregatedStatements: Array<string> = [];
@@ -28,8 +76,8 @@ export function es_fixed_query(samplingDatabase: Database, sampleSize: number, e
 }
 
 
-export function neo4j_fixed_query(samplingDatabase: Database, sampleSize: number) {
-  const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize)
+export function neo4jFixedQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize)
 
   const queryStatements: Array<object> = [];
   for (const graphSample of samples) {
@@ -52,7 +100,7 @@ export function neo4j_fixed_query(samplingDatabase: Database, sampleSize: number
 }
 
 
-export function neo4j_floating_object_query(samplingDatabase: Database, sampleSize: number) {
+export function neo4jFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<object> = graphSamples(samplingDatabase, sampleSize)
   const queryStatements: Array<object> = [];
   for (const graphSample of samples) {
@@ -73,7 +121,7 @@ export function neo4j_floating_object_query(samplingDatabase: Database, sampleSi
 }
 
 
-export function neo4j_floating_predicate_query(samplingDatabase: Database, sampleSize: number) {
+export function neo4jFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize)
   const queryStatements: array = [];
   for (let graphSample of samples) {
@@ -96,7 +144,7 @@ export function neo4j_floating_predicate_query(samplingDatabase: Database, sampl
 }
 
 
-export function neo4j_floating_subject_query(samplingDatabase: Database, sampleSize: number) {
+export function neo4jFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize)
   let queryStatements: Array<object> = [];
   for (let graphSample of samples) {
@@ -117,7 +165,7 @@ export function neo4j_floating_subject_query(samplingDatabase: Database, sampleS
 }
 
 
-export function plover_fixed_query(samplingDatabase: Database, sampleSize: number) {
+export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number) {
   let payloadStructure: object = {
     message: {
       query_graph: {

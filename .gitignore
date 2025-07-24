@@ -1,0 +1,8 @@
+# IDE
+.idea
+
+# Data
+src/data
+
+**/node_modules/
+src/testoutput/**/*.json
