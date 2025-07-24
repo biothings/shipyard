@@ -6,8 +6,6 @@ import driver from "k6/x/sql/driver/sqlite3";
 import { dgraphFixedQuery } from '../../lib/graph.ts';
 import { EnvConfiguration } from '../../configuration/environment.ts';
 
-
-
 const graphDB = sql.open(driver, "/src/data/graph_sample.db");
 
 
@@ -41,7 +39,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: string = dgraphFixedQuery(graphDB, __ENV.NUM_SAMPLE);
+  const payload: Uint8Array<ArrayBuffer> = dgraphFixedQuery(graphDB, __ENV.NUM_SAMPLE);
   const url: string = EnvConfiguration["DGRAPH_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);

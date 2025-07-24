@@ -235,7 +235,7 @@ export function plover_batch_query(samplingDatabase: Database, sampleSize: int) 
 }
 
 
-export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: int, es_index: string) {
+export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
   let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
 
   let statements: Array<string> = [];
@@ -245,7 +245,7 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: int, es
     const object: string = graph_sample.object;
     const object_type: string = graph_sample.object_type;
     const predicate: string = graph_sample.predicate;
-    const query: string = `lookup${index}(func : eq(id, "{${object}}"), first: 1) {{id name category {${object_type}}(first: 10) @filter(eq(id, "{${subject}}")){{id name category}}}}`;
+    const query: string = `lookup${index}(func: eq(id, "${object}"), first: 1) {{id name category ${object_type}(first: 10) @filter(eq(id, "${subject}")) {{ id name category ${subject_type}}} }}`
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
