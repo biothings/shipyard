@@ -1,4 +1,4 @@
-FROM golang:1.24.3-alpine3.21 AS builder
+FROM golang:1.24.5-alpine3.21 AS builder
 
 WORKDIR /app
 
@@ -12,7 +12,8 @@ RUN go install go.k6.io/xk6/cmd/xk6@latest
 RUN xk6 build  \
     --with github.com/grafana/xk6-sql@latest \
     --with github.com/grafana/xk6-sql-driver-sqlite3 \
-    --with github.com/grafana/xk6-dashboard
+    --with github.com/grafana/xk6-dashboard \
+    --with github.com/oleiade/xk6-encoding
 
 FROM alpine:3.21
 
