@@ -1,5 +1,7 @@
-import { graph_samples } from './sampling.ts';
+import {TextEncoder} from 'k6/x/encoding';
 import {Database, Row} from "k6/x/sql";
+
+import { graph_samples } from './sampling.ts';
 
 export type FloatingField = 'subject' | 'object' | 'predicate';
 
@@ -49,14 +51,13 @@ export const generateEsFloatingQuerier = (floatingField: FloatingField) => (samp
 }
 
 
+export function es_fixed_query(samplingDatabase: Database, sampleSize: int, es_index: string) {
+  let samples: Array<{object}> = graph_samples(samplingDatabase, sampleSize)
 
-export function es_fixed_query(sampling_database: Database, sample_size: int, es_index: string) {
-  let samples: Array<{object}> = graph_samples(sampling_database, sample_size)
-
-  let aggregated_statements: array = [];
+  let aggregatedStatements: array = [];
   for (let graph_sample of samples) {
-    aggregated_statements.push(JSON.stringify({index: es_index}));
-    aggregated_statements.push(
+    aggregatedStatements.push(JSON.stringify({index: es_index}));
+    aggregatedStatements.push(
       JSON.stringify(
         {
           query : {
@@ -72,13 +73,13 @@ export function es_fixed_query(sampling_database: Database, sample_size: int, es
       )
     );
   }
-  const payload: string = aggregated_statements.join("\n") + "\n";
+  const payload: string = aggregatedStatements.join("\n") + "\n";
   return payload;
 }
 
 
-export function neo4j_fixed_query(sampling_database: Database, sample_size: int) {
-  const samples: Array<{object}> = graph_samples(sampling_database, sample_size)
+export function neo4j_fixed_query(samplingDatabase: Database, sampleSize: int) {
+  const samples: Array<{object}> = graph_samples(samplingDatabase, sampleSize)
 
   const query_statements: array = [];
   for (const graph_sample of samples) {
@@ -101,8 +102,8 @@ export function neo4j_fixed_query(sampling_database: Database, sample_size: int)
 }
 
 
-export function neo4j_floating_object_query(sampling_database: Database, sample_size: int) {
-  const samples: Array<{object}> = graph_samples(sampling_database, sample_size)
+export function neo4j_floating_object_query(samplingDatabase: Database, sampleSize: int) {
+  const samples: Array<{object}> = graph_samples(samplingDatabase, sampleSize)
   const query_statements: array = [];
   for (const graph_sample of samples) {
     const subject_type: string = graph_sample.subject_type
@@ -122,8 +123,8 @@ export function neo4j_floating_object_query(sampling_database: Database, sample_
 }
 
 
-export function neo4j_floating_predicate_query(sampling_database: Database, sample_size: int) {
-  const samples: Array<{object}> = graph_samples(sampling_database, sample_size)
+export function neo4j_floating_predicate_query(samplingDatabase: Database, sampleSize: int) {
+  const samples: Array<{object}> = graph_samples(samplingDatabase, sampleSize)
   const query_statements: array = [];
   for (let graph_sample of samples) {
     const subject_type: string = graph_sample.subject_type
@@ -145,8 +146,8 @@ export function neo4j_floating_predicate_query(sampling_database: Database, samp
 }
 
 
-export function neo4j_floating_subject_query(sampling_database: Database, sample_size: int) {
-  const samples: Array<{object}> = graph_samples(sampling_database, sample_size)
+export function neo4j_floating_subject_query(samplingDatabase: Database, sampleSize: int) {
+  const samples: Array<{object}> = graph_samples(samplingDatabase, sampleSize)
   let query_statements: array = [];
   for (let graph_sample of samples) {
     let subject_type: string = graph_sample.subject_type
@@ -166,7 +167,7 @@ export function neo4j_floating_subject_query(sampling_database: Database, sample
 }
 
 
-export function plover_fixed_query(sampling_database: Database, sample_size: int) {
+export function plover_fixed_query(samplingDatabase: Database, sampleSize: int) {
   let payload_structure: object = {
     message: {
       query_graph: {
@@ -176,7 +177,7 @@ export function plover_fixed_query(sampling_database: Database, sample_size: int
     }
   };
 
-  const samples: Array<{object}> = graph_samples(sampling_database, sample_size);
+  const samples: Array<{object}> = graph_samples(samplingDatabase, sampleSize);
   samples.forEach( (graph_sample, index) => {
       const edge_label: string = `e${ index }`;
       const node_label_subject: string = `n0-${ edge_label }`;
@@ -205,7 +206,7 @@ export function plover_fixed_query(sampling_database: Database, sample_size: int
   return payload_structure;
 }
 
-export function plover_batch_query(sampling_database: Database, sample_size: int) {
+export function plover_batch_query(samplingDatabase: Database, sampleSize: int) {
 
   let payload_structure: object = {
     message: {
@@ -221,7 +222,7 @@ export function plover_batch_query(sampling_database: Database, sample_size: int
     }
   };
 
-  const samples: Array<{object}> = graph_samples(sampling_database, sample_size);
+  const samples: Array<{object}> = graph_samples(samplingDatabase, sampleSize);
   let node_ids: Array<{string}> = []
   samples.forEach( graph_sample => {
       node_ids.push(graph_sample.subject);
@@ -231,4 +232,23 @@ export function plover_batch_query(sampling_database: Database, sample_size: int
 
 
   return payload_structure;
+}
+
+
+export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+
+  let statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const subject: string = graph_sample.subject;
+    const object: string = graph_sample.object;
+    const predicate: string = graph_sample.predicate.replace("biolink:","");
+    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @filter(eq(id, "${subject}")) @facets(eq(predicate, "${predicate}")) @facets(predicate: predicate) {id name}}`
+    statements.push(query);
+  });
+  const payload: string = "{" + statements.join("") + "}";
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
+  return encodedPayload;
 }
