@@ -242,7 +242,7 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
   samples.forEach( (graph_sample, index) => {
     const subject: string = graph_sample.subject;
     const object: string = graph_sample.object;
-    const predicate: string = graph_sample.predicate;
+    const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @filter(eq(id, "${subject}")) @facets(eq(predicate, "${predicate}")) @facets(predicate: predicate) {id name}}`
     statements.push(query);
   });
