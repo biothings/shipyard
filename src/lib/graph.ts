@@ -245,7 +245,7 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
     const object: string = graph_sample.object;
     const object_type: string = graph_sample.object_type;
     const predicate: string = graph_sample.predicate;
-    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @filter(eq(id, "${subject}")) @facets(eq(predicate, "${subject_type}")) @facets(predicate: predicate) {id name }}`
+    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @filter(eq(id, "${subject}")) @facets(eq(predicate, "${predicate}")) @facets(predicate: predicate) {id name }}`
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
