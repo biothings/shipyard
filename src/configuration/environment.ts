@@ -11,7 +11,8 @@ const Environment: Object = {
       transltr: "http://transltr.biothings.io:9200/_msearch"
     },
     PLOVERDB_QUERY_URL: "https://kg2cploverdb.ci.transltr.io/query",
-    DGRAPH_QUERY_URL: "http://localhost:18080/query"
+    DGRAPH_QUERY_URL: "http://localhost:18080/query",
+    JANUSGRAPH_QUERY_URL: "ws://localhost:8182/gremlin"
   },
   local: {
     ES_QUERY_URL: {
@@ -25,7 +26,8 @@ const Environment: Object = {
       transltr: "http://transltr.biothings.io:9200/_msearch"
     },
     PLOVERDB_QUERY_URL: "https://kg2cploverdb.ci.transltr.io/query",
-    DGRAPH_QUERY_URL: "http://su08:18080/query"
+    DGRAPH_QUERY_URL: "http://su08:18080/query",
+    JANUSGRAPH_QUERY_URL: "ws://su08:8182/gremlin"
   },
 };
 

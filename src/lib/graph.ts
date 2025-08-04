@@ -252,3 +252,21 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
   const encodedPayload: Uint8Array = encoder.encode(payload);
   return encodedPayload;
 }
+
+export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+
+  let union_clauses: Array<string> = [];
+  samples.forEach( graph_sample => {
+    const subject: string = graph_sample.subject;
+    const object: string = graph_sample.object;
+    const predicate: string = graph_sample.predicate.replace("biolink:","");
+    const union_clause: string = `__.V().has('id', '${subject}').outE('${predicate}').where(__.inV().has('id', '${object}'))`;
+    union_clauses.push(union_clause);
+  });
+  const union_chain: string = union_clauses.join(", ");
+  const payload = `g.union(${union_chain}).project('edge_label', 'edge_properties', 'from_vertex_label', 'from_vertex_properties', 'to_vertex_label', 'to_vertex_properties').by(label()).by(valueMap()).by(outV().label()).by(outV().valueMap()).by(inV().label()).by(inV().valueMap())`
+  return payload
+}
+
+
