@@ -50,30 +50,29 @@ export const generateEsFloatingQuerier =
 
 export function es_fixed_query(
   samplingDatabase: Database,
-  sampleSize: int,
+  sampleSize: string,
   es_index: string,
 ) {
-  let samples: Array<{ object }> = graph_samples(samplingDatabase, sampleSize);
+  const samples = graph_samples(samplingDatabase, sampleSize);
 
-  let aggregatedStatements: array = [];
-  for (let graph_sample of samples) {
-    aggregatedStatements.push(JSON.stringify({ index: es_index }));
-    aggregatedStatements.push(
-      JSON.stringify({
-        query: {
-          bool: {
-            filter: [
-              { term: { "subject.keyword": graph_sample.subject } },
-              { term: { "object.keyword": graph_sample.object } },
-              { term: { "predicate.keyword": graph_sample.predicate } },
-            ],
-          },
+  const query_header = JSON.stringify({ index: es_index });
+
+  const aggregatedStatements = samples.flatMap((graph_sample) => [
+    query_header,
+    JSON.stringify({
+      query: {
+        bool: {
+          filter: [
+            { term: { "subject.keyword": graph_sample.subject } },
+            { term: { "object.keyword": graph_sample.object } },
+            { term: { "predicate.keyword": graph_sample.predicate } },
+          ],
         },
-      }),
-    );
-  }
-  const payload: string = aggregatedStatements.join("\n") + "\n";
-  return payload;
+      },
+    }),
+  ]);
+
+  return aggregatedStatements.join("\n") + "\n";
 }
 
 export function neo4j_fixed_query(samplingDatabase: Database, sampleSize: int) {
