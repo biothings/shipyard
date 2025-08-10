@@ -5,7 +5,7 @@ import { graph_samples } from "./sampling.ts";
 
 export type FloatingField = "subject" | "object" | "predicate";
 
-function prepareSample(sample: Row, floatingField: FloatingField) {
+function prepareFloatingQueryTerms(sample: Row, floatingField: FloatingField) {
   const fields = ["subject", "object", "predicate"];
   const filter = fields.reduce((arr, field) => {
     if (field == floatingField) {
@@ -41,7 +41,7 @@ export const generateEsFloatingQuerier =
       return [
         ...arr,
         JSON.stringify({ index: es_index }),
-        prepareSample(sample, floatingField),
+        prepareFloatingQueryTerms(sample, floatingField),
       ];
     }, []);
 
