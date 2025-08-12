@@ -19,9 +19,9 @@ const getMain =
     http.post(url, payload, data.params);
   };
 
-const getSummaryHandler = (floatingField: FloatingField) => (data) => {
+const getSummaryHandler = (naming: string) => (data) => {
   return {
-    [`./testoutput/rtx-kg2/floating-${floatingField}-elasticsearch.biothings-es8.ts.json`]:
+    [`./testoutput/rtx-kg2/floating-${naming}-elasticsearch.biothings-es8.ts.json`]:
       JSON.stringify(data),
   };
 };
@@ -32,7 +32,7 @@ const allModules = (
   index: IndexName = "rtx_kg2_edges_merged", // backwards compatibility
 ) => {
   const main = getMain(floatingField, index);
-  const handleSummary = getSummaryHandler(floatingField);
+  const handleSummary = getSummaryHandler(floatingField + "-" + index);
 
   return {
     main,
