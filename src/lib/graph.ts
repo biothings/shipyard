@@ -135,6 +135,7 @@ export function es_fixed_query(
   const aggregatedStatements = samples.flatMap((graph_sample) => [
     query_header,
     JSON.stringify({
+      _source: es_index === "rtx_kg2_nodes_adjacency_list",
       query: {
         bool: {
           filter: term_get_function(graph_sample),
