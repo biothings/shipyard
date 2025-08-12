@@ -1,4 +1,5 @@
 import {graphSamples} from './sampling.ts';
+import {TextEncoder} from 'k6/x/encoding';
 import {Database, Row} from "k6/x/sql";
 
 export type FloatingField = 'subject' | 'object' | 'predicate';
@@ -78,7 +79,6 @@ export function esFixedQuery(samplingDatabase: Database, sampleSize: number, esI
 
 export function neo4jFixedQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize)
-
   const queryStatements: Array<object> = [];
   for (const graphSample of samples) {
     const subject_type: string = graphSample.subject_type;
@@ -205,7 +205,6 @@ export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number)
 }
 
 export function ploverBatchQuery(samplingDatabase: Database, sampleSize: number) {
-
   let payloadStructure: object = {
     message: {
       query_graph: {
@@ -231,3 +230,40 @@ export function ploverBatchQuery(samplingDatabase: Database, sampleSize: number)
 
   return payloadStructure;
 }
+
+
+export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+
+  let statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const subject: string = graph_sample.subject;
+    const object: string = graph_sample.object;
+    const predicate: string = graph_sample.predicate.replace("biolink:","");
+    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @filter(eq(id, "${subject}")) @facets(eq(predicate, "${predicate}")) @facets(predicate: predicate) {id name}}`
+    statements.push(query);
+  });
+  const payload: string = "{" + statements.join("") + "}";
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
+  return encodedPayload;
+}
+
+export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+
+  let union_clauses: Array<string> = [];
+  samples.forEach( graph_sample => {
+    const subject: string = graph_sample.subject;
+    const object: string = graph_sample.object;
+    const predicate: string = graph_sample.predicate.replace("biolink:","");
+    const unionClause: string = `__.V().has('id', '${subject}').outE('${predicate}').where(__.inV().has('id', '${object}'))`;
+    union_clauses.push(unionClause);
+  });
+  const unionChain: string = union_clauses.join(", ");
+  const gremlinQuery: string = `g.union(${unionChain}).project('edge_label', 'edge_properties', 'from_vertex_label', 'from_vertex_properties', 'to_vertex_label', 'to_vertex_properties').by(label()).by(valueMap()).by(outV().label()).by(outV().valueMap()).by(inV().label()).by(inV().valueMap())`
+  const message: object = { "gremlin": gremlinQuery }
+  return JSON.stringify(message);
+}
+
