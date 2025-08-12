@@ -78,12 +78,9 @@ export const generateEsFloatingQuerier =
         ? prepareFloatingQueryTermsForAdjList
         : prepareFloatingQueryTerms;
 
+    const queryHeader = JSON.stringify({ index: es_index });
     const aggregated_statements = samples.reduce((arr, sample) => {
-      return [
-        ...arr,
-        JSON.stringify({ index: es_index }),
-        queryTermPreparer(sample, floatingField),
-      ];
+      return [...arr, queryHeader, queryTermPreparer(sample, floatingField)];
     }, []);
 
     return aggregated_statements.join("\n") + "\n";
