@@ -48,6 +48,38 @@ export const generateEsFloatingQuerier =
     return aggregated_statements.join("\n") + "\n";
   };
 
+function getTermsAgainstNodesAdjacencyList(graph_sample: Row) {
+  return [
+    { term: { _id: graph_sample.subject } },
+    {
+      nested: {
+        path: "out_edges",
+        query: {
+          bool: {
+            filter: [
+              { term: { "out_edges.object.keyword": graph_sample.object } },
+              {
+                term: {
+                  "out_edges.predicate.keyword": graph_sample.predicate,
+                },
+              },
+            ],
+          },
+        },
+        inner_hits: { size: 1 },
+      },
+    },
+  ];
+}
+
+function getTermsAgainstEdges(graph_sample: Row) {
+  return [
+    { term: { "subject.keyword": graph_sample.subject } },
+    { term: { "object.keyword": graph_sample.object } },
+    { term: { "predicate.keyword": graph_sample.predicate } },
+  ];
+}
+
 export function es_fixed_query(
   samplingDatabase: Database,
   sampleSize: string,
@@ -57,16 +89,17 @@ export function es_fixed_query(
 
   const query_header = JSON.stringify({ index: es_index });
 
+  const term_get_function =
+    es_index === "rtx_kg2_nodes_adjacency_list"
+      ? getTermsAgainstNodesAdjacencyList
+      : getTermsAgainstEdges;
+
   const aggregatedStatements = samples.flatMap((graph_sample) => [
     query_header,
     JSON.stringify({
       query: {
         bool: {
-          filter: [
-            { term: { "subject.keyword": graph_sample.subject } },
-            { term: { "object.keyword": graph_sample.object } },
-            { term: { "predicate.keyword": graph_sample.predicate } },
-          ],
+          filter: term_get_function(graph_sample),
         },
       },
     }),
