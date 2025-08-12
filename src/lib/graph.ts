@@ -5,6 +5,42 @@ import { graph_samples } from "./sampling.ts";
 
 export type FloatingField = "subject" | "object" | "predicate";
 
+function prepareFloatingQueryTermsForAdjList(
+  sample: Row,
+  floatingField: FloatingField,
+) {
+  const edgeOrigin = floatingField === "subject" ? "object" : "subject";
+  const edgeDestin = edgeOrigin === "subject" ? "object" : "subject";
+  const edgeClass = floatingField === "subject" ? "in_edges" : "out_edges";
+
+  const innerFilter = [];
+
+  if (floatingField === "predicate") {
+    innerFilter.push({
+      term: { [`${edgeClass}.object.keyword`]: sample[edgeDestin] },
+    });
+  } else {
+    innerFilter.push({
+      term: { [`${edgeClass}.predicate.keyword`]: sample.predicate },
+    });
+  }
+
+  return [
+    { term: { _id: sample[edgeOrigin] } },
+    {
+      nested: {
+        path: [edgeClass],
+        query: {
+          bool: {
+            filter: innerFilter,
+          },
+        },
+        inner_hits: { size: 1 },
+      },
+    },
+  ];
+}
+
 function prepareFloatingQueryTerms(sample: Row, floatingField: FloatingField) {
   const fields = ["subject", "object", "predicate"];
   const filter = fields.reduce((arr, field) => {
@@ -37,11 +73,16 @@ export const generateEsFloatingQuerier =
   (sampling_database: Database, sample_size: string, es_index: string) => {
     const samples = graph_samples(sampling_database, sample_size);
 
+    const queryTermPreparer =
+      es_index === "rtx_kg2_nodes_adjacency_list"
+        ? prepareFloatingQueryTermsForAdjList
+        : prepareFloatingQueryTerms;
+
     const aggregated_statements = samples.reduce((arr, sample) => {
       return [
         ...arr,
         JSON.stringify({ index: es_index }),
-        prepareFloatingQueryTerms(sample, floatingField),
+        queryTermPreparer(sample, floatingField),
       ];
     }, []);
 
