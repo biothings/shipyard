@@ -261,12 +261,12 @@ export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: num
     const subject: string = graph_sample.subject;
     const object: string = graph_sample.object;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
-    const union_clause: string = `__.V().has('id', '${subject}').outE('${predicate}').where(__.inV().has('id', '${object}'))`;
-    union_clauses.push(union_clause);
+    const unionClause: string = `__.V().has('id', '${subject}').outE('${predicate}').where(__.inV().has('id', '${object}'))`;
+    union_clauses.push(unionClause);
   });
-  const union_chain: string = union_clauses.join(", ");
-  const payload = `g.union(${union_chain}).project('edge_label', 'edge_properties', 'from_vertex_label', 'from_vertex_properties', 'to_vertex_label', 'to_vertex_properties').by(label()).by(valueMap()).by(outV().label()).by(outV().valueMap()).by(inV().label()).by(inV().valueMap())`
-  return payload
+  const unionChain: string = union_clauses.join(", ");
+  const gremlinQuery: string = `g.union(${unionChain}).project('edge_label', 'edge_properties', 'from_vertex_label', 'from_vertex_properties', 'to_vertex_label', 'to_vertex_properties').by(label()).by(valueMap()).by(outV().label()).by(outV().valueMap()).by(inV().label()).by(inV().valueMap())`
+  const message: object = { "gremlin": gremlinQuery }
+  return JSON.stringify(message);
 }
-
 
