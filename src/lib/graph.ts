@@ -4,6 +4,7 @@ import { Database, Row } from "k6/x/sql";
 import { graph_samples } from "./sampling.ts";
 
 export type FloatingField = "subject" | "object" | "predicate";
+export type IndexName = "rtx_kg2_edges_merged" | "rtx_kg2_nodes_adjacency_list";
 
 function prepareFloatingQueryTermsForAdjList(
   sample: Row,
@@ -25,7 +26,7 @@ function prepareFloatingQueryTermsForAdjList(
     });
   }
 
-  return [
+  const filter = [
     { term: { _id: sample[edgeOrigin] } },
     {
       nested: {
@@ -39,6 +40,15 @@ function prepareFloatingQueryTermsForAdjList(
       },
     },
   ];
+
+  return JSON.stringify({
+    _source: { excludes: ["in_edges", "out_edges"] },
+    query: {
+      bool: {
+        filter,
+      },
+    },
+  });
 }
 
 function prepareFloatingQueryTerms(sample: Row, floatingField: FloatingField) {
@@ -121,7 +131,7 @@ function getTermsAgainstEdges(graph_sample: Row) {
 export function es_fixed_query(
   samplingDatabase: Database,
   sampleSize: string,
-  es_index: string,
+  es_index: IndexName,
 ) {
   const samples = graph_samples(samplingDatabase, sampleSize);
 
@@ -135,7 +145,10 @@ export function es_fixed_query(
   const aggregatedStatements = samples.flatMap((graph_sample) => [
     query_header,
     JSON.stringify({
-      _source: es_index === "rtx_kg2_nodes_adjacency_list",
+      _source:
+        es_index === "rtx_kg2_nodes_adjacency_list"
+          ? { excludes: ["in_edges", "out_edges"] }
+          : true,
       query: {
         bool: {
           filter: term_get_function(graph_sample),

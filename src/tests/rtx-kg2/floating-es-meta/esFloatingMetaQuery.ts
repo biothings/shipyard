@@ -2,12 +2,11 @@ import { LoadPayload } from "../../../typings/shipyard/load.ts";
 import {
   FloatingField,
   generateEsFloatingQuerier,
+  IndexName,
 } from "../../../lib/graph.ts";
 import { graph_db } from "../../../configuration/db.ts";
 import { EnvConfiguration } from "../../../configuration/environment.ts";
 import http from "k6/http";
-
-type IndexName = "rtx_kg2_edges_merged" | "rtx_kg2_nodes_adjacency_list";
 
 const getMain =
   (floatingField: FloatingField, index: IndexName) => (data: LoadPayload) => {
