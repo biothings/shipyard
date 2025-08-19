@@ -1,4 +1,3 @@
-import encoding from "k6/encoding";
 import http from "k6/http";
 import sql from "k6/x/sql";
 
