@@ -250,6 +250,59 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
   return encodedPayload;
 }
 
+
+export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+  const statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const subject: string = graph_sample.subject;
+    const predicate: string = graph_sample.predicate.replace("biolink:","");
+    const query: string = `lookup${index}(func: eq(id, "${subject}")) {~has_edge (first:100) @facets(eq(predicate, "${predicate}")) {id name category @facets(predicate: predicate) {id name}}}`
+    statements.push(query);
+  });
+  const payload: string = "{" + statements.join("") + "}";
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
+  return encodedPayload;
+}
+
+
+export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+  const statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const subject: string = graph_sample.subject;
+    const object: string = graph_sample.object;
+    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @filter(eq(id, "${subject}")) @facets(predicate: predicate) {id name}}`
+    statements.push(query);
+  });
+  const payload: string = "{" + statements.join("") + "}";
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
+  return encodedPayload;
+}
+
+
+export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+  const statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    // const subject: string = graph_sample.subject;
+    const object: string = graph_sample.object;
+    const predicate: string = graph_sample.predicate.replace("biolink:","");
+    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @facets(eq(predicate, "${predicate}")) @facets(predicate: predicate) {id name}}`
+    statements.push(query);
+  });
+  const payload: string = "{" + statements.join("") + "}";
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
+  return encodedPayload;
+}
+
+
 export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
   let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
 
