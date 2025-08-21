@@ -271,30 +271,30 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, sampleSize: number
     const node1: string = graph_sample.n1;
     const node2: string = graph_sample.n2;
     const query: string = `
-    twohoplookup${index}(func: eq(id, "${node0}")) 
-    @cascade{
-      id 
-      name 
-      category 
+    twohoplookup_index(func: eq(id, "${node0}")) {
+      id
+      name
+      category
 
-      has_edge 
+      has_edge
         (first: 1)
-        @filter(eq(id, "${node1}") 
+        @filter(eq(id, "${node1}"))
         @facets(predicate: predicate) {
-        id 
+        id
         name
         category
 
-        has_edge 
+        has_edge
           (first: 1)
-          @filter(eq(id, "${node2}")) 
+          @filter(eq(id, "${node2}"))
           @facets(predicate: predicate) {
-            id 
+            id
             name
             category
           }
         }
     }`;
+
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -314,15 +314,14 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, sampleSize: numb
     const node2: string = graph_sample.n2;
     const node3: string = graph_sample.n3;
     const query: string = `
-    twohoplookup${index}(func: eq(id, "${node0}")) 
-    @cascade{
+    threehoplookup${index}(func: eq(id, "${node0}")) {
       id 
       name 
       category 
 
       has_edge 
         (first: 1)
-        @filter(eq(id, "${node1}") 
+        @filter(eq(id, "${node1}")) 
         @facets(predicate: predicate) {
         id 
         name
@@ -367,15 +366,14 @@ export function dgraphFourHopQuery(samplingDatabase: Database, sampleSize: numbe
     const node3: string = graph_sample.n3;
     const node4: string = graph_sample.n4;
     const query: string = `
-    twohoplookup${index}(func: eq(id, "${node0}")) 
-    @cascade{
+    fourhoplookup${index}(func: eq(id, "${node0}")) {
       id 
       name 
       category 
 
       has_edge 
         (first: 1)
-        @filter(eq(id, "${node1}") 
+        @filter(eq(id, "${node1}")) 
         @facets(predicate: predicate) {
         id 
         name
@@ -430,15 +428,14 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, sampleSize: numbe
     const node4: string = graph_sample.n4;
     const node5: string = graph_sample.n5;
     const query: string = `
-    twohoplookup${index}(func: eq(id, "${node0}")) 
-    @cascade{
+    fivehoplookup${index}(func: eq(id, "${node0}")) {
       id 
       name 
       category 
 
       has_edge 
         (first: 1)
-        @filter(eq(id, "${node1}") 
+        @filter(eq(id, "${node1}"))
         @facets(predicate: predicate) {
         id 
         name
