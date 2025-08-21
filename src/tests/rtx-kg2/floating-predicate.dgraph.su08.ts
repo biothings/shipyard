@@ -14,10 +14,10 @@ export const options = {
       executor: "shared-iterations",
       startTime: "0s",
       gracefulStop: "60s",
-      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "1500s" },
+      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "180s" },
       vus: 5,
-      iterations: 25,
-      maxDuration: "60m",
+      iterations: 75,
+      maxDuration: "20m",
     },
   },
 };
