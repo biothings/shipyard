@@ -3,8 +3,8 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { dgraphFloatingSubjectQuery } from "../../lib/graph";
-import { EnvConfiguration } from "../../configuration/environment";
+import { dgraphFloatingSubjectQuery } from "../../lib/graph.ts";
+import { EnvConfiguration } from "../../configuration/environment.ts";
 
 const graphDB = sql.open(driver, "/src/data/graph_sample.db");
 

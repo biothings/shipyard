@@ -233,7 +233,7 @@ export function ploverBatchQuery(samplingDatabase: Database, sampleSize: number)
 
 
 export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
-  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
   let statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
@@ -252,7 +252,7 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
 
 
 export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
-  const samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+  const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
   const statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
     const subject: string = graph_sample.subject;
@@ -269,7 +269,7 @@ export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize
 
 
 export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
-  const samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+  const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
   const statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
     const subject: string = graph_sample.subject;
@@ -286,7 +286,7 @@ export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleS
 
 
 export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
-  const samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+  const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
   const statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
     // const subject: string = graph_sample.subject;
@@ -304,7 +304,7 @@ export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
 
 
 export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
-  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
   let union_clauses: Array<string> = [];
   samples.forEach( graph_sample => {
