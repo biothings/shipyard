@@ -1,61 +1,54 @@
-import http from 'k6/http';
+import http from "k6/http";
 import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { elasticsearch_nodenorm_api_query } from '../../lib/curie.ts';
-import { EnvConfiguration } from '../../configuration/environment.ts';
+import { elasticsearchNodenormAPIQuery } from "../../lib/curie.ts";
+import { EnvConfiguration } from "../../configuration/environment.ts";
 
 const curie_db = sql.open(driver, "/src/data/nodenorm_curie.db");
-
 
 export const options = {
   scenarios: {
     full_load: {
-      executor: 'shared-iterations',
-      startTime: '0s',
-      gracefulStop: '5s',
-      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '20s'},
+      executor: "shared-iterations",
+      startTime: "0s",
+      gracefulStop: "5s",
+      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "20s" },
       vus: 5,
       iterations: 100,
-      maxDuration: '1m',
-    },
-    half_load: {
-      executor: 'shared-iterations',
-      startTime: '1m',
-      gracefulStop: '30s',
-      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '20s'},
-      vus: 5,
-      iterations: 100,
-      maxDuration: '45s',
+      maxDuration: "1m",
     },
   },
 };
 
-
 export function setup() {
   const params = {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
-    timeout: '60s'
+    timeout: "60s",
   };
-  return { params: params }
+  return { params: params };
 }
 
 export function teardown() {
   curie_db.close();
 }
 
-
 export default function (data: Object) {
-  const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["ci"]
-  const payload: string = elasticsearch_nodenorm_api_query(curie_db, __ENV.NUM_SAMPLE);
+  const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["ci"];
+  const payload: string = elasticsearchNodenormAPIQuery(
+    curie_db,
+    __ENV.NUM_SAMPLE,
+  );
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }
 
-
 export function handleSummary(data) {
-  return { "/testoutput/stress.elasticsearch.biothings-ci.ts.json": JSON.stringify(data) };
+  return {
+    "/testoutput/stress.elasticsearch.biothings-ci.ts.json":
+      JSON.stringify(data),
+  };
 }
