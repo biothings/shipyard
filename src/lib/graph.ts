@@ -241,15 +241,15 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
     const object: string = graph_sample.object;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
-    lookup${index}(func: eq(id, "${object}")) 
+    lookup${index}(func: eq(id, "${object}"))
     {
-      id 
-      name 
-      has_edge 
-        @filter(eq(id, "${subject}")) 
-        @facets(eq(predicate, "${predicate}")) 
+      id
+      name
+      has_edge
+        @filter(eq(id, "${subject}"))
+        @facets(eq(predicate, "${predicate}"))
         @facets(predicate: predicate) {
-          id 
+          id
           name
         }
     }`;
@@ -271,33 +271,33 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: str
     const node1: string = graph_sample.n1;
     const node2: string = graph_sample.n2;
     const query: string = `
-    twohoplookup${index}(func: eq(id, "${node0}"), first: 1) 
-    @cascade 
+    twohoplookup${index}(func: eq(id, "${node0}"), first: 1)
+    @cascade
     {
-      id 
-      name 
-      category 
+      id
+      name
+      category
 
-      has_edge 
+      has_edge
         (first: 1)
         @filter(
           eq(id, "${node1}")
         )
-        @facets(predicate: predicate) 
+        @facets(predicate: predicate)
         {
-          id 
-          name 
-          category 
+          id
+          name
+          category
 
-          has_edge 
-            (first: 1) 
+          has_edge
+            (first: 1)
             @filter(
               eq(id, "${node2}")
-            ) 
-            @facets(predicate: predicate) 
+            )
+            @facets(predicate: predicate)
             {
-              id 
-              name 
+              id
+              name
               category
             }
         }
@@ -323,31 +323,31 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: s
     const node3: string = graph_sample.n3;
     const query: string = `
     threehoplookup${index}(func: eq(id, "${node0}")) {
-      id 
-      name 
-      category 
+      id
+      name
+      category
 
-      has_edge 
+      has_edge
         (first: 1)
-        @filter(eq(id, "${node1}")) 
+        @filter(eq(id, "${node1}"))
         @facets(predicate: predicate) {
-        id 
+        id
         name
         category
 
-        has_edge 
+        has_edge
           (first: 1)
-          @filter(eq(id, "${node2}")) 
+          @filter(eq(id, "${node2}"))
           @facets(predicate: predicate) {
-            id 
+            id
             name
             category
 
-          has_edge 
+          has_edge
             (first: 1)
-            @filter(eq(id, "${node3}")) 
+            @filter(eq(id, "${node3}"))
             @facets(predicate: predicate) {
-              id 
+              id
               name
               category
             }
@@ -375,39 +375,39 @@ export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: st
     const node4: string = graph_sample.n4;
     const query: string = `
     fourhoplookup${index}(func: eq(id, "${node0}")) {
-      id 
-      name 
-      category 
+      id
+      name
+      category
 
-      has_edge 
+      has_edge
         (first: 1)
-        @filter(eq(id, "${node1}")) 
+        @filter(eq(id, "${node1}"))
         @facets(predicate: predicate) {
-        id 
+        id
         name
         category
 
-        has_edge 
+        has_edge
           (first: 1)
-          @filter(eq(id, "${node2}")) 
+          @filter(eq(id, "${node2}"))
           @facets(predicate: predicate) {
-            id 
+            id
             name
             category
 
-          has_edge 
+          has_edge
             (first: 1)
-            @filter(eq(id, "${node3}")) 
+            @filter(eq(id, "${node3}"))
             @facets(predicate: predicate) {
-              id 
+              id
               name
               category
 
-            has_edge 
+            has_edge
               (first: 1)
-              @filter(eq(id, "${node4}")) 
+              @filter(eq(id, "${node4}"))
               @facets(predicate: predicate) {
-                id 
+                id
                 name
                 category
               }
@@ -437,47 +437,47 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
     const node5: string = graph_sample.n5;
     const query: string = `
     fivehoplookup${index}(func: eq(id, "${node0}")) {
-      id 
-      name 
-      category 
+      id
+      name
+      category
 
-      has_edge 
+      has_edge
         (first: 1)
         @filter(eq(id, "${node1}"))
         @facets(predicate: predicate) {
-        id 
+        id
         name
         category
 
-        has_edge 
+        has_edge
           (first: 1)
-          @filter(eq(id, "${node2}")) 
+          @filter(eq(id, "${node2}"))
           @facets(predicate: predicate) {
-            id 
+            id
             name
             category
 
-          has_edge 
+          has_edge
             (first: 1)
-            @filter(eq(id, "${node3}")) 
+            @filter(eq(id, "${node3}"))
             @facets(predicate: predicate) {
-              id 
+              id
               name
               category
 
-            has_edge 
+            has_edge
               (first: 1)
-              @filter(eq(id, "${node4}")) 
+              @filter(eq(id, "${node4}"))
               @facets(predicate: predicate) {
-                id 
+                id
                 name
                 category
 
-              has_edge 
+              has_edge
                 (first: 1)
-                @filter(eq(id, "${node5}")) 
+                @filter(eq(id, "${node5}"))
                 @facets(predicate: predicate) {
-                  id 
+                  id
                   name
                   category
                 }
@@ -565,3 +565,144 @@ export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: num
   return JSON.stringify(message);
 }
 
+export function janusgraphTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  let statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const node0: string = graph_sample.n0;
+    const node1: string = graph_sample.n1;
+    const node2: string = graph_sample.n2;
+    const gremlinQuery =
+      `g.V().has('id', '${node0}').as('${node0}')` +
+      `.outE().as('e1')` +
+      `.inV().has('id', '${node1}').limit(1).as('${node1}')` +
+      `.outE().as('e2')` +
+      `.inV().has('id', '${node2}').limit(1).as('${node2}')` +
+      `.project('traversal')` +
+      `.by(select('${node0}', 'e1', '${node1}', 'e2', '${node2}')` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `)`;
+
+    const message = { gremlin: gremlinQuery };
+    return JSON.stringify(message);
+  });
+}
+
+export function janusgraphThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  let statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const node0: string = graph_sample.n0;
+    const node1: string = graph_sample.n1;
+    const node2: string = graph_sample.n2;
+    const node3: string = graph_sample.n3;
+    const gremlinQuery =
+      `g.V().has('id', '${node0}').as('${node0}')` +
+      `.outE().as('e1')` +
+      `.inV().has('id', '${node1}').limit(1).as('${node1}')` +
+      `.outE().as('e2')` +
+      `.inV().has('id', '${node2}').limit(1).as('${node2}')` +
+      `.outE().as('e3')` +
+      `.inV().has('id', '${node3}').limit(1).as('${node3}')` +
+      `.project('traversal')` +
+      `.by(select('${node0}', 'e1', '${node1}', 'e2', '${node2}', 'e3', '${node3}')` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `)`;
+
+    const message = { gremlin: gremlinQuery };
+    return JSON.stringify(message);
+  });
+}
+
+export function janusgraphFourHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  let statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const node0: string = graph_sample.n0;
+    const node1: string = graph_sample.n1;
+    const node2: string = graph_sample.n2;
+    const node3: string = graph_sample.n3;
+    const node4: string = graph_sample.n4;
+    const gremlinQuery =
+      `g.V().has('id', '${node0}').as('${node0}')` +
+      `.outE().as('e1')` +
+      `.inV().has('id', '${node1}').limit(1).as('${node1}')` +
+      `.outE().as('e2')` +
+      `.inV().has('id', '${node2}').limit(1).as('${node2}')` +
+      `.outE().as('e3')` +
+      `.inV().has('id', '${node3}').limit(1).as('${node3}')` +
+      `.outE().as('e4')` +
+      `.inV().has('id', '${node4}').limit(1).as('${node4}')` +
+      `.project('traversal')` +
+      `.by(select('${node0}', 'e1', '${node1}', 'e2', '${node2}', 'e3', '${node3}', 'e4', '${node4}')` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `)`;
+
+    const message = { gremlin: gremlinQuery };
+    return JSON.stringify(message);
+  });
+}
+
+export function janusgraphFiveHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  let statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const node0: string = graph_sample.n0;
+    const node1: string = graph_sample.n1;
+    const node2: string = graph_sample.n2;
+    const node3: string = graph_sample.n3;
+    const node4: string = graph_sample.n4;
+    const node5: string = graph_sample.n5;
+    const gremlinQuery =
+      `g.V().has('id', '${node0}').as('${node0}')` +
+      `.outE().as('e1')` +
+      `.inV().has('id', '${node1}').limit(1).as('${node1}')` +
+      `.outE().as('e2')` +
+      `.inV().has('id', '${node2}').limit(1).as('${node2}')` +
+      `.outE().as('e3')` +
+      `.inV().has('id', '${node3}').limit(1).as('${node3}')` +
+      `.outE().as('e4')` +
+      `.inV().has('id', '${node4}').limit(1).as('${node4}')` +
+      `.outE().as('e5')` +
+      `.inV().has('id', '${node5}').limit(1).as('${node5}')` +
+      `.project('traversal')` +
+      `.by(select('${node0}', 'e1', '${node1}', 'e2', '${node2}', 'e3', '${node3}', 'e4', '${node4}', 'e5', '${node5}')` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('edge')).by(label()).by(valueMap()))` +
+      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `)`;
+
+    const message = { gremlin: gremlinQuery };
+    return JSON.stringify(message);
+  });
+}
