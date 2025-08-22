@@ -5,7 +5,7 @@ import sql from "k6/x/sql";
 import driver from "k6/x/sql/driver/sqlite3";
 
 import { EnvConfiguration } from "../../configuration/environment.ts";
-import { elasticsearch_nodenorm_backend_query } from "../../lib/curie.ts";
+import { elasticsearchNodenormBackendQuery, elasticsearchNodenormBackendQuery } from "../../lib/curie.ts";
 import { sampleCurieTrafficValue } from "../../lib/traffic.ts";
 import { trafficCurieSizes } from "../../lib/sampling.ts";
 
@@ -55,7 +55,7 @@ export default function (data) {
   }
 
   const index: string = "nodenorm_20250405_roofpu9f";
-  const payload: string = elasticsearch_nodenorm_backend_query(
+  const payload: string = elasticsearchNodenormBackendQuery(
     curie_db,
     __ENV.NUM_SAMPLE,
     index,
