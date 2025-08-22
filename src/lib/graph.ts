@@ -201,7 +201,8 @@ export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number)
       payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
   });
 
-  return payloadStructure;
+  const payload: string = JSON.stringify(payloadStructure);
+  return payload;
 }
 
 export function ploverFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
@@ -239,7 +240,8 @@ export function ploverFloatingPredicateQuery(samplingDatabase: Database, sampleS
       payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
   });
 
-  return payloadStructure;
+  const payload: string = JSON.stringify(payloadStructure);
+  return payload;
 }
 
 
@@ -278,7 +280,8 @@ export function ploverFloatingObjectQuery(samplingDatabase: Database, sampleSize
       payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
   });
 
-  return payloadStructure;
+  const payload: string = JSON.stringify(payloadStructure);
+  return payload;
 }
 
 
@@ -317,7 +320,8 @@ export function ploverFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
       payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
   });
 
-  return payloadStructure;
+  const payload: string = JSON.stringify(payloadStructure);
+  return payload;
 }
 
 
