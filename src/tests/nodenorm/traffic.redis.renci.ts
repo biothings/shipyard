@@ -54,8 +54,7 @@ export default function (data) {
     data.params.chunkInterval[1] += intervalDifference;
   }
 
-  const url: string =
-    "https://nodenorm.ci.transltr.io/1.5/get_normalized_nodes";
+  const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["renci"]
   const payload: string = redisNodenormQuery(curie_db, __ENV.NUM_SAMPLE);
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
