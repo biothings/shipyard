@@ -12,7 +12,6 @@ const getMain =
   (floatingField: FloatingField, index: IndexName) => (data: LoadPayload) => {
     const querier = generateEsFloatingQuerier(floatingField);
     const payload: string = querier(graph_db, __ENV.NUM_SAMPLE, index);
-
     const url: string = EnvConfiguration["ES_QUERY_URL"]["su12"];
     data.params.timeout = __ENV.HTTP_TIMEOUT;
     http.post(url, payload, data.params);
@@ -20,7 +19,7 @@ const getMain =
 
 const getSummaryHandler = (naming: string) => (data) => {
   return {
-    [`./testoutput/rtx-kg2/floating-${naming}-elasticsearch.biothings-es8.ts.json`]:
+    [`/testoutput/floating-${naming}-elasticsearch.biothings-es8.ts.json`]:
       JSON.stringify(data),
   };
 };
@@ -32,7 +31,6 @@ const allModules = (
 ) => {
   const main = getMain(floatingField, index);
   const handleSummary = getSummaryHandler(floatingField + "-" + index);
-
   return {
     main,
     handleSummary,

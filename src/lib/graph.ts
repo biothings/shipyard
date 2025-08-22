@@ -1,7 +1,7 @@
 import { TextEncoder } from "k6/x/encoding";
 import { Database, Row } from "k6/x/sql";
 
-import { graph_samples } from "./sampling.ts";
+import { graphSamples } from "./sampling.ts";
 
 export type FloatingField = "subject" | "object" | "predicate";
 export type IndexName = "rtx_kg2_edges_merged" | "rtx_kg2_nodes_adjacency_list";
@@ -80,15 +80,15 @@ function prepareFloatingQueryTerms(sample: Row, floatingField: FloatingField) {
 
 export const generateEsFloatingQuerier =
   (floatingField: FloatingField) =>
-  (sampling_database: Database, sample_size: string, es_index: string) => {
+  (sampling_database: Database, sample_size: string, esIndex: string) => {
     const samples = graph_samples(sampling_database, sample_size);
 
     const queryTermPreparer =
-      es_index === "rtx_kg2_nodes_adjacency_list"
+      esIndex === "rtx_kg2_nodes_adjacency_list"
         ? prepareFloatingQueryTermsForAdjList
         : prepareFloatingQueryTerms;
 
-    const queryHeader = JSON.stringify({ index: es_index });
+    const queryHeader = JSON.stringify({ index: esIndex });
     const aggregated_statements = samples.reduce((arr, sample) => {
       return [...arr, queryHeader, queryTermPreparer(sample, floatingField)];
     }, []);
@@ -128,17 +128,17 @@ function getTermsAgainstEdges(graph_sample: Row) {
   ];
 }
 
-export function es_fixed_query(
+export function esFixedQuery(
   samplingDatabase: Database,
   sampleSize: string,
-  es_index: IndexName,
+  esIndex: IndexName,
 ) {
   const samples = graph_samples(samplingDatabase, sampleSize);
 
-  const query_header = JSON.stringify({ index: es_index });
+  const query_header = JSON.stringify({ index: esIndex });
 
   const term_get_function =
-    es_index === "rtx_kg2_nodes_adjacency_list"
+    esIndex === "rtx_kg2_nodes_adjacency_list"
       ? getTermsAgainstNodesAdjacencyList
       : getTermsAgainstEdges;
 
@@ -146,7 +146,7 @@ export function es_fixed_query(
     query_header,
     JSON.stringify({
       _source:
-        es_index === "rtx_kg2_nodes_adjacency_list"
+        esIndex === "rtx_kg2_nodes_adjacency_list"
           ? { excludes: ["in_edges", "out_edges"] }
           : true,
       query: {
@@ -160,117 +160,96 @@ export function es_fixed_query(
   return aggregatedStatements.join("\n") + "\n";
 }
 
-export function neo4j_fixed_query(samplingDatabase: Database, sampleSize: int) {
-  const samples: Array<{ object }> = graph_samples(
-    samplingDatabase,
-    sampleSize,
-  );
-
-  const query_statements: array = [];
-  for (const graph_sample of samples) {
-    const subject_type: string = graph_sample.subject_type;
-    const object_type: string = graph_sample.object_type;
-    const predicate: string = graph_sample.predicate;
+export function neo4jFixedQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize)
+  const queryStatements: Array<object> = [];
+  for (const graphSample of samples) {
+    const subject_type: string = graphSample.subject_type;
+    const object_type: string = graphSample.object_type;
+    const predicate: string = graphSample.predicate;
     const query: string = `MATCH (\`n0\`:\`${subject_type}\` {\`id\`: $subject})-[\`e01\`:\`${predicate}\`]->(\`n1\`:\`${object_type}\` {\`id\`: $object}) RETURN *;`;
 
     const statement: object = {
-      statement: query,
-      parameters: {
-        subject: graph_sample.subject,
-        object: graph_sample.object,
-      },
+      statement : query,
+      parameters : {
+        subject : graphSample.subject,
+        object : graphSample.object,
+      }
     };
-    query_statements.push(statement);
+    queryStatements.push(statement);
   }
-  const payload: string = JSON.stringify({ statements: query_statements });
+  const payload: string = JSON.stringify({statements: queryStatements});
   return payload;
 }
 
-export function neo4j_floating_object_query(
-  samplingDatabase: Database,
-  sampleSize: int,
-) {
-  const samples: Array<{ object }> = graph_samples(
-    samplingDatabase,
-    sampleSize,
-  );
-  const query_statements: array = [];
-  for (const graph_sample of samples) {
-    const subject_type: string = graph_sample.subject_type;
-    const object_type: string = graph_sample.object_type;
-    const predicate: string = graph_sample.predicate;
+
+export function neo4jFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<object> = graphSamples(samplingDatabase, sampleSize)
+  const queryStatements: Array<object> = [];
+  for (const graphSample of samples) {
+    const subject_type: string = graphSample.subject_type
+    const object_type: string = graphSample.object_type
+    const predicate: string = graphSample.predicate
     const query: string = `MATCH (\`n0\`:\`${subject_type}\` {\`id\`: $subject})-[\`e01\`:\`${predicate}\`]->(\`n1\`:\`${object_type}\`) RETURN *;`;
 
     const statement: object = {
-      statement: query,
-      parameters: { subject: graph_sample.subject },
-    };
-    query_statements.push(statement);
+      statement : query,
+      parameters : { subject : graphSample.subject}
+    }
+    queryStatements.push(statement)
   }
 
-  const payload: string = JSON.stringify({ statements: query_statements });
+  const payload: string = JSON.stringify({statements: queryStatements});
   return payload;
 }
 
-export function neo4j_floating_predicate_query(
-  samplingDatabase: Database,
-  sampleSize: int,
-) {
-  const samples: Array<{ object }> = graph_samples(
-    samplingDatabase,
-    sampleSize,
-  );
-  const query_statements: array = [];
-  for (let graph_sample of samples) {
-    const subject_type: string = graph_sample.subject_type;
-    const object_type: string = graph_sample.object_type;
+
+export function neo4jFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize)
+  const queryStatements: array = [];
+  for (let graphSample of samples) {
+    const subject_type: string = graphSample.subject_type
+    const object_type: string = graphSample.object_type
     const query: string = `MATCH (\`n0\`:\`${subject_type}\` {\`id\`: $subject})--(\`n1\`:\`${object_type}\` {\`id\`: $object}) RETURN *;`;
 
     const statement: object = {
-      statement: query,
-      parameters: {
-        subject: graph_sample.subject,
-        object: graph_sample.object,
-      },
-    };
-    query_statements.push(statement);
+      statement : query,
+      parameters : {
+        subject : graphSample.subject,
+        object : graphSample.object,
+      }
+    }
+    queryStatements.push(statement)
   }
 
-  const payload: string = JSON.stringify({ statements: query_statements });
+  const payload: string = JSON.stringify({statements: queryStatements});
   return payload;
 }
 
-export function neo4j_floating_subject_query(
-  samplingDatabase: Database,
-  sampleSize: int,
-) {
-  const samples: Array<{ object }> = graph_samples(
-    samplingDatabase,
-    sampleSize,
-  );
-  let query_statements: array = [];
-  for (let graph_sample of samples) {
-    let subject_type: string = graph_sample.subject_type;
-    let object_type: string = graph_sample.object_type;
-    let predicate: string = graph_sample.predicate;
+
+export function neo4jFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize)
+  let queryStatements: Array<object> = [];
+  for (let graphSample of samples) {
+    let subject_type: string = graphSample.subject_type
+    let object_type: string = graphSample.object_type
+    let predicate: string = graphSample.predicate
     let query: string = `MATCH (\`n0\`:\`${subject_type}\`)-[\`e01\`:\`${predicate}\`]->(\`n1\`:\`${object_type}\`) RETURN *;`;
 
     let statement: object = {
-      statement: query,
-      parameters: { object: graph_sample.object },
-    };
-    query_statements.push(statement);
+      statement : query,
+      parameters : { object : graphSample.object}
+    }
+    queryStatements.push(statement)
   }
 
-  const payload: string = JSON.stringify({ statements: query_statements });
+  const payload: string = JSON.stringify({statements: queryStatements});
   return payload;
 }
 
-export function plover_fixed_query(
-  samplingDatabase: Database,
-  sampleSize: int,
-) {
-  let payload_structure: object = {
+
+export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number) {
+  let payloadStructure: object = {
     message: {
       query_graph: {
         edges: {},
@@ -279,77 +258,41 @@ export function plover_fixed_query(
     },
   };
 
-  const samples: Array<{ object }> = graph_samples(
-    samplingDatabase,
-    sampleSize,
-  );
-  samples.forEach((graph_sample, index) => {
-    const edge_label: string = `e${index}`;
-    const node_label_subject: string = `n0-${edge_label}`;
-    const node_label_object: string = `n1-${edge_label}`;
+  const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
+  samples.forEach( (graphSample, index) => {
+      const edge_label: string = `e${ index }`;
+      const node_label_subject: string = `n0-${ edge_label }`;
+      const node_label_object: string = `n1-${ edge_label }`;
 
-    let edge: object = {
-      subject: node_label_subject,
-      object: node_label_object,
-      predicates: [graph_sample.predicate],
-    };
+      let edge: object = {
+        subject: node_label_subject,
+        object: node_label_object,
+        predicates: [ graphSample.predicate ],
+      };
 
-    const subject_node: object = {
-      ids: [graph_sample.subject],
-      categories: [graph_sample.subject_type],
-    };
+      const subject_node: object = {
+        ids: [graphSample.subject],
+        categories: [graphSample.subject_type],
+      };
 
-    const object_node: object = {
-      ids: [graph_sample.object],
-      categories: [graph_sample.object_type],
-    };
-    payload_structure.message.query_graph.edges[edge_label] = edge;
-    payload_structure.message.query_graph.nodes[node_label_subject] =
-      subject_node;
-    payload_structure.message.query_graph.nodes[node_label_object] =
-      object_node;
+      const object_node: object = {
+        ids: [graphSample.object],
+        categories: [graphSample.object_type],
+      };
+      payloadStructure.message.query_graph.edges[edge_label] = edge;
+      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
+      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
   });
 
-  return payload_structure;
+  return payloadStructure;
 }
 
-export function plover_batch_query(
-  samplingDatabase: Database,
-  sampleSize: int,
-) {
-  let payload_structure: object = {
-    message: {
-      query_graph: {
-        edges: {
-          e0: { subject: "n0", object: "n1" },
-        },
-        nodes: {
-          n0: { ids: [] },
-          n1: { categories: ["biolink.NamedThing"] },
-        },
-      },
-    },
-  };
-
-  const samples: Array<{ object }> = graph_samples(
-    samplingDatabase,
-    sampleSize,
-  );
-  let node_ids: Array<{ string }> = [];
-  samples.forEach((graph_sample) => {
-    node_ids.push(graph_sample.subject);
-    node_ids.push(graph_sample.object);
-  });
-  payload_structure.message.query_graph.nodes.ids = node_ids;
-
-  return payload_structure;
-}
-
+<<<<<<< HEAD
 export function dgraphFixedQuery(
   samplingDatabase: Database,
   sampleSize: number,
 ) {
-  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize);
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
   let statements: Array<string> = [];
   samples.forEach((graph_sample, index) => {
@@ -366,8 +309,61 @@ export function dgraphFixedQuery(
   return encodedPayload;
 }
 
+
+export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+  const statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const subject: string = graph_sample.subject;
+    const predicate: string = graph_sample.predicate.replace("biolink:","");
+    const query: string = `lookup${index}(func: eq(id, "${subject}")) {~has_edge (first:100) @facets(eq(predicate, "${predicate}")) {id name category @facets(predicate: predicate) {id name}}}`
+    statements.push(query);
+  });
+  const payload: string = "{" + statements.join("") + "}";
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
+  return encodedPayload;
+}
+
+
+export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+  const statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const subject: string = graph_sample.subject;
+    const object: string = graph_sample.object;
+    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @filter(eq(id, "${subject}")) @facets(predicate: predicate) {id name}}`
+    statements.push(query);
+  });
+  const payload: string = "{" + statements.join("") + "}";
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
+  return encodedPayload;
+}
+
+
+export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+  const statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    // const subject: string = graph_sample.subject;
+    const object: string = graph_sample.object;
+    const predicate: string = graph_sample.predicate.replace("biolink:","");
+    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @facets(eq(predicate, "${predicate}")) @facets(predicate: predicate) {id name}}`
+    statements.push(query);
+  });
+  const payload: string = "{" + statements.join("") + "}";
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
+  return encodedPayload;
+}
+
+
 export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
-  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
   let union_clauses: Array<string> = [];
   samples.forEach( graph_sample => {
