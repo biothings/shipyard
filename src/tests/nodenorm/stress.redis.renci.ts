@@ -37,8 +37,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const url: string =
-    "https://nodenorm.ci.transltr.io/1.5/get_normalized_nodes";
+  const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["renci"]
   const payload: string = redisNodeNormQuery(curie_db, __ENV.NUM_SAMPLE);
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
