@@ -20,7 +20,7 @@ const getMain = (floatingField: FloatingField) => (data: LoadPayload) => {
 
 const getSummaryHandler = (floatingField: FloatingField) => (data) => {
   return {
-    [`/testoutput/rtx-kg2/floating-${floatingField}-elasticsearch.biothings-es8.ts.json`]:
+    [`/testoutput/floating-${floatingField}.elasticsearch.biothings-es8.ts.json`]:
       JSON.stringify(data),
   };
 };
