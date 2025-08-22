@@ -204,33 +204,6 @@ export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number)
   return payloadStructure;
 }
 
-export function ploverBatchQuery(samplingDatabase: Database, sampleSize: number) {
-  let payloadStructure: object = {
-    message: {
-      query_graph: {
-        edges: {
-          e0: { subject: "n0", object: "n1" }
-        },
-        nodes: {
-          n0: { ids: [] },
-          n1: { categories: ["biolink.NamedThing"]}
-        },
-      }
-    }
-  };
-
-  const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
-  let node_ids: Array<{string}> = []
-  samples.forEach( graphSample => {
-      node_ids.push(graphSample.subject);
-      node_ids.push(graphSample.object);
-  });
-  payloadStructure.message.query_graph.nodes.ids = node_ids
-
-
-  return payloadStructure;
-}
-
 
 export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
   let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
