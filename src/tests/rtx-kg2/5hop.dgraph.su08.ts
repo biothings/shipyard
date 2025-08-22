@@ -40,7 +40,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: Uint8Array<ArrayBuffer> = dgraphFiveHopQuery(fivehopDB, tableName, __ENV.NUM_SAMPLE);
+  const payload: Uint8Array<ArrayBuffer> = dgraphFiveHopQuery(fivehopDB, tableName, __ENV.NUM_SAMPLE, 1000);
   const url: string = EnvConfiguration["DGRAPH_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);

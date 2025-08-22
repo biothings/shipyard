@@ -16,10 +16,10 @@ export const options = {
       executor: 'shared-iterations',
       startTime: '0m',
       gracefulStop: '30s',
-      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '300s'},
+      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '5s'},
       vus: 5,
       iterations: 100,
-      maxDuration: '20m',
+      maxDuration: '1m',
     }
   },
 };
@@ -40,7 +40,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: Uint8Array<ArrayBuffer> = dgraphTwoHopQuery(twohopDB, tableName, __ENV.NUM_SAMPLE);
+  const payload: Uint8Array<ArrayBuffer> = dgraphTwoHopQuery(twohopDB, tableName, __ENV.NUM_SAMPLE, 50);
   const url: string = EnvConfiguration["DGRAPH_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);

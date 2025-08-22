@@ -262,8 +262,8 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
   return encodedPayload;
 }
 
-export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
-  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize)
+export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   let statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
@@ -312,8 +312,8 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: str
   return encodedPayload;
 }
 
-export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
-  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize)
+export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   let statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
@@ -363,8 +363,8 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: s
   return encodedPayload;
 }
 
-export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
-  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize)
+export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   let statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
@@ -424,8 +424,8 @@ export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: st
   return encodedPayload;
 }
 
-export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
-  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize)
+export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   let statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {

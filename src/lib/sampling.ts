@@ -7,8 +7,8 @@ export function graphSamples(samplingDatabase: Database, sampleSize: number) {
   return samples;
 }
 
-export function multihopSamples(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
-  const sampleQuery: string = `SELECT * FROM ${databaseTable} WHERE rowid IN (SELECT rowid FROM ${databaseTable} ORDER BY random() LIMIT $1)`;
+export function multihopSamples(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  const sampleQuery: string = `SELECT * FROM ${databaseTable} WHERE rowid IN (SELECT rowid FROM ${databaseTable} WHERE depth > ${depthSize} ORDER BY random() LIMIT $1)`;
   console.log(`Sample Query ${sampleQuery}`);
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
   return samples;
