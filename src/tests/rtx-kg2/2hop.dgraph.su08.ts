@@ -7,6 +7,7 @@ import { dgraphTwoHopQuery } from '../../lib/graph.ts';
 import { EnvConfiguration } from '../../configuration/environment.ts';
 
 const twohopDB = sql.open(driver, "/src/data/two-hop.db");
+const tableName: string = "twohop";
 
 
 export const options = {
@@ -15,7 +16,7 @@ export const options = {
       executor: 'shared-iterations',
       startTime: '0m',
       gracefulStop: '30s',
-      env: { NUM_SAMPLE: '50', HTTP_TIMEOUT: '300s'},
+      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '300s'},
       vus: 5,
       iterations: 100,
       maxDuration: '20m',
@@ -39,7 +40,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: Uint8Array<ArrayBuffer> = dgraphTwoHopQuery(twohopDB, __ENV.NUM_SAMPLE);
+  const payload: Uint8Array<ArrayBuffer> = dgraphTwoHopQuery(twohopDB, tableName, __ENV.NUM_SAMPLE);
   const url: string = EnvConfiguration["DGRAPH_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);

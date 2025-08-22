@@ -7,6 +7,13 @@ export function graphSamples(samplingDatabase: Database, sampleSize: number) {
   return samples;
 }
 
+export function multihopSamples(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
+  const sampleQuery: string = `SELECT * FROM ${databaseTable} WHERE rowid IN (SELECT rowid FROM ${databaseTable} ORDER BY random() LIMIT $1)`;
+  console.log(`Sample Query ${sampleQuery}`);
+  const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
+  return samples;
+}
+
 export function curieSamples(samplingDatabase: Database, sampleSize: number) {
   const sampleQuery: string = "SELECT * FROM nodenorm_curie WHERE rowid IN (SELECT rowid FROM nodenorm_curie ORDER BY random() LIMIT $1)";
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);

@@ -1,4 +1,4 @@
-import {graphSamples} from './sampling.ts';
+import {graphSamples, multihopSamples} from './sampling.ts';
 import {TextEncoder} from 'k6/x/encoding';
 import {Database, Row} from "k6/x/sql";
 
@@ -262,8 +262,8 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
   return encodedPayload;
 }
 
-export function dgraphTwoHopQuery(samplingDatabase: Database, sampleSize: number) {
-  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize)
 
   let statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
@@ -271,27 +271,35 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, sampleSize: number
     const node1: string = graph_sample.n1;
     const node2: string = graph_sample.n2;
     const query: string = `
-    twohoplookup_index(func: eq(id, "${node0}")) {
-      id
-      name
-      category
+    twohoplookup${index}(func: eq(id, "${node0}"), first: 1) 
+    @cascade 
+    {
+      id 
+      name 
+      category 
 
-      has_edge
+      has_edge 
         (first: 1)
-        @filter(eq(id, "${node1}"))
-        @facets(predicate: predicate) {
-        id
-        name
-        category
+        @filter(
+          eq(id, "${node1}")
+        )
+        @facets(predicate: predicate) 
+        {
+          id 
+          name 
+          category 
 
-        has_edge
-          (first: 1)
-          @filter(eq(id, "${node2}"))
-          @facets(predicate: predicate) {
-            id
-            name
-            category
-          }
+          has_edge 
+            (first: 1) 
+            @filter(
+              eq(id, "${node2}")
+            ) 
+            @facets(predicate: predicate) 
+            {
+              id 
+              name 
+              category
+            }
         }
     }`;
 
@@ -304,8 +312,8 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, sampleSize: number
   return encodedPayload;
 }
 
-export function dgraphThreeHopQuery(samplingDatabase: Database, sampleSize: number) {
-  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize)
 
   let statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
@@ -355,8 +363,8 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, sampleSize: numb
   return encodedPayload;
 }
 
-export function dgraphFourHopQuery(samplingDatabase: Database, sampleSize: number) {
-  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize)
 
   let statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
@@ -416,8 +424,8 @@ export function dgraphFourHopQuery(samplingDatabase: Database, sampleSize: numbe
   return encodedPayload;
 }
 
-export function dgraphFiveHopQuery(samplingDatabase: Database, sampleSize: number) {
-  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize)
 
   let statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
