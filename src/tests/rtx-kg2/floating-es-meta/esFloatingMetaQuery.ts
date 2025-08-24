@@ -19,8 +19,7 @@ const getMain =
 
 const getSummaryHandler = (naming: string) => (data) => {
   return {
-    [`/testoutput/floating-${naming}-elasticsearch.biothings-es8.ts.json`]:
-      JSON.stringify(data),
+    [`/testoutput/floating-${naming}-elasticsearch.biothings-es8.ts.json`]:JSON.stringify(data),
   };
 };
 
