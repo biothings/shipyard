@@ -1,81 +1,164 @@
-import {graphSamples, multihopSamples} from './sampling.ts';
-import {TextEncoder} from 'k6/x/encoding';
-import {Database, Row} from "k6/x/sql";
+import { TextEncoder } from "k6/x/encoding";
+import { Database, Row } from "k6/x/sql";
 
-export type FloatingField = 'subject' | 'object' | 'predicate';
+import { graphSamples, multihopSamples} from "./sampling.ts";
 
-function prepareSample (sample: Row, floatingField: FloatingField) {
-  const fields = ['subject', 'object', 'predicate']
+export type FloatingField = "subject" | "object" | "predicate";
+export type IndexName = "rtx_kg2_edges_merged" | "rtx_kg2_nodes_adjacency_list";
+
+function prepareFloatingQueryTermsForAdjList(
+  sample: Row,
+  floatingField: FloatingField,
+) {
+  const edgeOrigin = floatingField === "subject" ? "object" : "subject";
+  const edgeDestin = edgeOrigin === "subject" ? "object" : "subject";
+  const edgeClass = floatingField === "subject" ? "in_edges" : "out_edges";
+
+  const innerFilter = [];
+
+  if (floatingField === "predicate") {
+    innerFilter.push({
+      term: { [`${edgeClass}.object.keyword`]: sample[edgeDestin] },
+    });
+  } else {
+    innerFilter.push({
+      term: { [`${edgeClass}.predicate.keyword`]: sample.predicate },
+    });
+  }
+
+  const filter = [
+    { term: { _id: sample[edgeOrigin] } },
+    {
+      nested: {
+        path: [edgeClass],
+        query: {
+          bool: {
+            filter: innerFilter,
+          },
+        },
+        inner_hits: { size: 1 },
+      },
+    },
+  ];
+
+  return JSON.stringify({
+    _source: { excludes: ["in_edges", "out_edges"] },
+    query: {
+      bool: {
+        filter,
+      },
+    },
+  });
+}
+
+function prepareFloatingQueryTerms(sample: Row, floatingField: FloatingField) {
+  const fields = ["subject", "object", "predicate"];
   const filter = fields.reduce((arr, field) => {
     if (field == floatingField) {
-      return arr
+      return arr;
     }
 
     return [
-        ...arr,
+      ...arr,
       {
         term: {
-          [field + `${field === 'predicate' ? '' : '.id'}` +'.keyword']: sample[field]
-        }
-      }
-    ]
-  }, [])
+          [field + `${field === "predicate" ? "" : ".id"}` + ".keyword"]:
+            sample[field],
+        },
+      },
+    ];
+  }, []);
 
-
-  return JSON.stringify(
-        {
-          query : {
-            bool : {
-              filter
-            }
-          }
-        }
-      )
+  return JSON.stringify({
+    query: {
+      bool: {
+        filter,
+      },
+    },
+  });
 }
 
+export const generateEsFloatingQuerier =
+  (floatingField: FloatingField) =>
+  (sampling_database: Database, sample_size: string, esIndex: string) => {
+    const samples = graph_samples(sampling_database, sample_size);
 
+    const queryTermPreparer =
+      esIndex === "rtx_kg2_nodes_adjacency_list"
+        ? prepareFloatingQueryTermsForAdjList
+        : prepareFloatingQueryTerms;
 
-export const generateEsFloatingQuerier = (floatingField: FloatingField) => (sampling_database: Database, sample_size: string, es_index: string) => {
-  const samples = graphSamples(sampling_database, sample_size);
+    const queryHeader = JSON.stringify({ index: esIndex });
+    const aggregated_statements = samples.reduce((arr, sample) => {
+      return [...arr, queryHeader, queryTermPreparer(sample, floatingField)];
+    }, []);
 
-  const aggregated_statements = samples.reduce((arr, sample) => {
-    return ([
-        ...arr,
-      JSON.stringify({index: es_index}),
-       prepareSample(sample, floatingField)
-    ])
-  }, [])
+    return aggregated_statements.join("\n") + "\n";
+  };
 
-  return aggregated_statements.join("\n") + "\n";
+function getTermsAgainstNodesAdjacencyList(graph_sample: Row) {
+  return [
+    { term: { _id: graph_sample.subject } },
+    {
+      nested: {
+        path: "out_edges",
+        query: {
+          bool: {
+            filter: [
+              { term: { "out_edges.object.keyword": graph_sample.object } },
+              {
+                term: {
+                  "out_edges.predicate.keyword": graph_sample.predicate,
+                },
+              },
+            ],
+          },
+        },
+        inner_hits: { size: 1 },
+      },
+    },
+  ];
 }
 
-
-export function esFixedQuery(samplingDatabase: Database, sampleSize: number, esIndex: string) {
-  let samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize)
-
-  let aggregatedStatements: Array<string> = [];
-  for (let graphSample of samples) {
-    aggregatedStatements.push(JSON.stringify({index: esIndex}));
-    aggregatedStatements.push(
-      JSON.stringify(
-        {
-          query : {
-            bool : {
-              filter : [
-                {term : { 'subject.keyword' : graphSample.subject }},
-                {term : { 'object.keyword' : graphSample.object}},
-                {term : { 'predicate.keyword' : graphSample.predicate}}
-              ]
-            }
-          }
-        }
-      )
-    );
-  }
-  const payload: string = aggregatedStatements.join("\n") + "\n";
-  return payload;
+function getTermsAgainstEdges(graph_sample: Row) {
+  return [
+    { term: { "subject.keyword": graph_sample.subject } },
+    { term: { "object.keyword": graph_sample.object } },
+    { term: { "predicate.keyword": graph_sample.predicate } },
+  ];
 }
 
+export function esFixedQuery(
+  samplingDatabase: Database,
+  sampleSize: string,
+  esIndex: IndexName,
+) {
+  const samples = graph_samples(samplingDatabase, sampleSize);
+
+  const query_header = JSON.stringify({ index: esIndex });
+
+  const term_get_function =
+    esIndex === "rtx_kg2_nodes_adjacency_list"
+      ? getTermsAgainstNodesAdjacencyList
+      : getTermsAgainstEdges;
+
+  const aggregatedStatements = samples.flatMap((graph_sample) => [
+    query_header,
+    JSON.stringify({
+      _source:
+        esIndex === "rtx_kg2_nodes_adjacency_list"
+          ? { excludes: ["in_edges", "out_edges"] }
+          : true,
+      query: {
+        bool: {
+          filter: term_get_function(graph_sample),
+        },
+      },
+    }),
+  ]);
+
+  return aggregatedStatements.join("\n") + "\n";
+}
 
 export function neo4jFixedQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize)
@@ -171,8 +254,8 @@ export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number)
       query_graph: {
         edges: {},
         nodes: {},
-      }
-    }
+      },
+    },
   };
 
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
@@ -329,7 +412,7 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
   let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
   let statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
+  samples.forEach((graph_sample, index) => {
     const subject: string = graph_sample.subject;
     const object: string = graph_sample.object;
     const predicate: string = graph_sample.predicate.replace("biolink:","");

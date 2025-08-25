@@ -1,7 +1,7 @@
 import { curieSamples } from './sampling.ts';
 import { Database, Row } from "k6/x/sql";
 
-export function redisNodeNormQuery(samplingDatabase: Database, sampleSize: number) {
+export function redisNodenormQuery(samplingDatabase: Database, sampleSize: number) {
   let curies: Array<Object> = curieSamples(samplingDatabase, sampleSize);
 
   let nodenormBody: Object = {

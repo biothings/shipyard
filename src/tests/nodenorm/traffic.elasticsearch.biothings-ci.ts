@@ -5,7 +5,7 @@ import sql from "k6/x/sql";
 import driver from "k6/x/sql/driver/sqlite3";
 
 import { EnvConfiguration } from "../../configuration/environment.ts";
-import { elasticsearch_nodenorm_api_query } from "../../lib/curie.ts";
+import { elasticsearchNodenormAPIQuery } from "../../lib/curie.ts";
 import { sampleCurieTrafficValue } from "../../lib/traffic.ts";
 import { trafficCurieSizes } from "../../lib/sampling.ts";
 
@@ -55,7 +55,7 @@ export default function (data) {
   }
 
   const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["ci"];
-  const payload: string = elasticsearch_nodenorm_api_query(
+  const payload: string = elasticsearchNodenormAPIQuery(
     curie_db,
     __ENV.NUM_SAMPLE,
   );
