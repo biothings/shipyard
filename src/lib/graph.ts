@@ -757,12 +757,13 @@ export function janusgraphTwoHopQuery(samplingDatabase: Database, databaseTable:
       `.inV().has('id', '${node2}').limit(1).as('${node2}')` +
       `.project('nodes', 'edges')` +
       `.by(select('${node0}', '${node1}', '${node2}')` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
+      `.by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))` +
+      `.by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))` +
+      `.by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))` +
+      `)` +
       `.by(project('all_e0', 'all_e1')` +
-      `.by(select('${node0}').outE().where(inV().has('id', '${node1}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node1}').outE().where(inV().has('id', '${node2}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
+      `.by(select('${node0}').outE().where(inV().has('id', '${node1}')).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
+      `.by(select('${node1}').outE().where(inV().has('id', '${node2}')).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
       `)`;
 
     const message = { gremlin: gremlinQuery };
