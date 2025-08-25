@@ -40,7 +40,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: Uint8Array<ArrayBuffer> = janusgraphTwoHopQuery(twohopDB, tableName, __ENV.NUM_SAMPLE, 50);
+  const payload: string = janusgraphTwoHopQuery(twohopDB, tableName, __ENV.NUM_SAMPLE, 50);
   const url: string = EnvConfiguration["JANUSGRAPH_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
