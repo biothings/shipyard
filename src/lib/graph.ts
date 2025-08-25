@@ -284,14 +284,131 @@ export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number)
       payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
   });
 
-  return payloadStructure;
+  const payload: string = JSON.stringify(payloadStructure);
+  return payload;
+}
+
+export function ploverFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
+  let payloadStructure: object = {
+    message: {
+      query_graph: {
+        edges: {},
+        nodes: {},
+      }
+    }
+  };
+
+  const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
+  samples.forEach( (graphSample, index) => {
+      const edge_label: string = `e${ index }`;
+      const node_label_subject: string = `n0-${ edge_label }`;
+      const node_label_object: string = `n1-${ edge_label }`;
+
+      let edge: object = {
+        subject: node_label_subject,
+        object: node_label_object,
+      };
+
+      const subject_node: object = {
+        ids: [graphSample.subject],
+        categories: [graphSample.subject_type],
+      };
+
+      const object_node: object = {
+        ids: [graphSample.object],
+        categories: [graphSample.object_type],
+      };
+      payloadStructure.message.query_graph.edges[edge_label] = edge;
+      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
+      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+  });
+
+  const payload: string = JSON.stringify(payloadStructure);
+  return payload;
 }
 
 
-export function dgraphFixedQuery(
-  samplingDatabase: Database,
-  sampleSize: number,
-) {
+export function ploverFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
+  let payloadStructure: object = {
+    message: {
+      query_graph: {
+        edges: {},
+        nodes: {},
+      }
+    }
+  };
+
+  const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
+  samples.forEach( (graphSample, index) => {
+      const edge_label: string = `e${ index }`;
+      const node_label_subject: string = `n0-${ edge_label }`;
+      const node_label_object: string = `n1-${ edge_label }`;
+
+      let edge: object = {
+        subject: node_label_subject,
+        object: node_label_object,
+        predicates: [ graphSample.predicate ],
+      };
+
+      const subject_node: object = {
+        ids: [graphSample.subject],
+        categories: [graphSample.subject_type],
+      };
+
+      const object_node: object = {
+        categories: [graphSample.object_type],
+      };
+      payloadStructure.message.query_graph.edges[edge_label] = edge;
+      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
+      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+  });
+
+  const payload: string = JSON.stringify(payloadStructure);
+  return payload;
+}
+
+
+export function ploverFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
+  let payloadStructure: object = {
+    message: {
+      query_graph: {
+        edges: {},
+        nodes: {},
+      }
+    }
+  };
+
+  const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
+  samples.forEach( (graphSample, index) => {
+      const edge_label: string = `e${ index }`;
+      const node_label_subject: string = `n0-${ edge_label }`;
+      const node_label_object: string = `n1-${ edge_label }`;
+
+      let edge: object = {
+        subject: node_label_subject,
+        object: node_label_object,
+        predicates: [ graphSample.predicate ],
+      };
+
+      const subject_node: object = {
+        categories: [graphSample.subject_type],
+      };
+
+      const object_node: object = {
+        ids: [graphSample.object],
+        categories: [graphSample.object_type],
+      };
+      payloadStructure.message.query_graph.edges[edge_label] = edge;
+      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
+      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+  });
+
+  const payload: string = JSON.stringify(payloadStructure);
+  return payload;
+}
+
+
+export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
   let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
   let statements: Array<string> = [];
