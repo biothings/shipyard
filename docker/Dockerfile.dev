@@ -1,4 +1,4 @@
-FROM golang:1.24.3-bookworm
+FROM golang:1.24.5-bookworm
 
 # Install system dependencies (Go is already present)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -24,4 +24,5 @@ RUN xk6 build \
     --with github.com/grafana/xk6-sql@latest \
     --with github.com/grafana/xk6-sql-driver-sqlite3 \
     --with github.com/grafana/xk6-dashboard \
+    --with github.com/oleiade/xk6-encoding \
     && mv k6 /usr/local/bin/k6
