@@ -744,31 +744,34 @@ export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: num
 export function janusgraphTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
-  let statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const node0: string = graph_sample.n0;
-    const node1: string = graph_sample.n1;
-    const node2: string = graph_sample.n2;
-    const gremlinQuery =
-      `g.V().has('id', '${node0}').as('${node0}')` +
-      `.outE().as('e0')` +
-      `.inV().has('id', '${node1}').limit(1).as('${node1}')` +
-      `.outE().as('e1')` +
-      `.inV().has('id', '${node2}').limit(1).as('${node2}')` +
-      `.project('nodes', 'edges')` +
-      `.by(select('${node0}', '${node1}', '${node2}')` +
-      `.by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))` +
-      `.by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))` +
-      `.by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))` +
-      `)` +
-      `.by(project('all_e0', 'all_e1')` +
-      `.by(select('${node0}').outE().where(inV().has('id', '${node1}')).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node1}').outE().where(inV().has('id', '${node2}')).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `)`;
+  const gremlinScript = `
+def out = []
+for (n in nodes) {
+    out.addAll(
+        g.V().has('id', n.n0).as(n.n0)
+            .outE().as('e0').inV().has('id', n.n1).limit(1).as(n.n1)
+            .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
+            .project('nodes', 'edges')
+            .by(select(n.n0, n.n1, n.n2)
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
+            .by(select('e0', 'e1')
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+    )
+}
+return out
+`;
 
-    const message = { gremlin: gremlinQuery };
-    return JSON.stringify(message);
-  });
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
+
 }
 
 export function janusgraphThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
