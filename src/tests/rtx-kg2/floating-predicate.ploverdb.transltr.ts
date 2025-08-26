@@ -1,10 +1,9 @@
 import http from "k6/http";
 import sql from "k6/x/sql";
 
-import { driver } from "k6/x/sql/driver/sqlite3";
-import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
+import driver from "k6/x/sql/driver/sqlite3";
 
-import { ploverFixedQuery } from "../../lib/graph.ts";
+import { ploverFloatingPredicateQuery } from "../../lib/graph.ts";
 import { EnvConfiguration } from "../../configuration/environment.ts";
 
 const graphDB = sql.open(driver, "/src/data/graph_sample.db");
@@ -38,7 +37,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: string = ploverFixedQuery(graphDB, __ENV.NUM_SAMPLE);
+  const payload: string = ploverFloatingPredicateQuery(graphDB, __ENV.NUM_SAMPLE);
   const url: string = EnvConfiguration["PLOVERDB_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
@@ -46,7 +45,6 @@ export default function (data: Object) {
 
 export function handleSummary(data) {
   return {
-    "/testoutput/fixed.ploverdb.transltr.ts.json": JSON.stringify(data),
-    "stdout": textSummary(data, { indent: →, enableColors: true }),
+    "/testoutput/floating-predicate.ploverdb.transltr.ts.json": JSON.stringify(data),
   };
 }
