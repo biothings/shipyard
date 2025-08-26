@@ -40,7 +40,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: string = janusgraphFourHopQuery(fourhopDB, tableName, __ENV.NUM_SAMPLE, 500);
+  const payload: string = janusgraphFourHopQuery(fourhopDB, tableName, __ENV.NUM_SAMPLE, 50);
   const url: string = EnvConfiguration["JANUSGRAPH_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
