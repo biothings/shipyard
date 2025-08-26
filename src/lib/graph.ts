@@ -81,7 +81,7 @@ function prepareFloatingQueryTerms(sample: Row, floatingField: FloatingField) {
 export const generateEsFloatingQuerier =
   (floatingField: FloatingField) =>
   (sampling_database: Database, sample_size: string, esIndex: string) => {
-    const samples = graph_samples(sampling_database, sample_size);
+    const samples = graphSamples(sampling_database, sample_size);
 
     const queryTermPreparer =
       esIndex === "rtx_kg2_nodes_adjacency_list"
@@ -133,7 +133,7 @@ export function esFixedQuery(
   sampleSize: string,
   esIndex: IndexName,
 ) {
-  const samples = graph_samples(samplingDatabase, sampleSize);
+  const samples = graphSamples(samplingDatabase, sampleSize);
 
   const query_header = JSON.stringify({ index: esIndex });
 
