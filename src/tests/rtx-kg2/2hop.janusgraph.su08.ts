@@ -18,8 +18,8 @@ export const options = {
       gracefulStop: '30s',
       env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '5s'},
       vus: 5,
-      iterations: 100,
-      maxDuration: '1m',
+      iterations: 1000,
+      maxDuration: '10m',
     }
   },
 };
