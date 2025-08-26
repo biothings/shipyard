@@ -2,7 +2,7 @@ import http from "k6/http";
 import sql from "k6/x/sql";
 
 import { Trend } from 'k6/metrics';
-import { driver } from "k6/x/sql/driver/sqlite3";
+import driver from "k6/x/sql/driver/sqlite3";
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 
 import { esFixedQuery } from "../../lib/graph.ts";
