@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import sql from "k6/x/sql";
 
+import { Trend } from 'k6/metrics';
 import { driver } from "k6/x/sql/driver/sqlite3";
 import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
 
@@ -10,6 +11,7 @@ import { EnvConfiguration } from '../../configuration/environment.ts';
 const twohopDB = sql.open(driver, "/src/data/two-hop.db");
 const tableName: string = "twohop";
 
+const respSizeTrend = new Trend('http_resp');
 
 export const options = {
   scenarios: {
@@ -44,12 +46,13 @@ export default function (data: Object) {
   const payload: Uint8Array<ArrayBuffer> = dgraphTwoHopQuery(twohopDB, tableName, __ENV.NUM_SAMPLE, 50);
   const url: string = EnvConfiguration["DGRAPH_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
-  http.post(url, payload, data.params);
+  const resp: http.Response = http.post(url, payload, data.params);
+  respSizeTrend.add(resp.body.length);
 }
 
 export function handleSummary(data) {
   return { 
     "/testoutput/2hop.dgraph.su08.ts.json": JSON.stringify(data),
-    "stdout": textSummary(data, { indent: →, enableColors: true }),
+    "stdout": textSummary(data, { indent: "→", enableColors: true }),
   };
 }
