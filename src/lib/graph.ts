@@ -777,115 +777,113 @@ return out
 export function janusgraphThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
-  let statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const node0: string = graph_sample.n0;
-    const node1: string = graph_sample.n1;
-    const node2: string = graph_sample.n2;
-    const node3: string = graph_sample.n3;
-    const gremlinQuery =
-      `g.V().has('id', '${node0}').as('${node0}')` +
-      `.outE().as('e0')` +
-      `.inV().has('id', '${node1}').limit(1).as('${node1}')` +
-      `.outE().as('e1')` +
-      `.inV().has('id', '${node2}').limit(1).as('${node2}')` +
-      `.outE().as('e2')` +
-      `.inV().has('id', '${node3}').limit(1).as('${node3}')` +
-      `.project('nodes', 'edges')` +
-      `.by(select('${node0}', '${node1}', '${node2}', '${node3}')` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('all_e0', 'all_e1', 'all_e2')` +
-      `.by(select('${node0}').outE().where(inV().has('id', '${node1}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node1}').outE().where(inV().has('id', '${node2}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node2}').outE().where(inV().has('id', '${node3}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `)`;
+  const gremlinScript = `
+def out = []
+for (n in nodes) {
+    out.addAll(
+        g.V().has('id', n.n0).as(n.n0)
+            .outE().as('e0').inV().has('id', n.n1).limit(1).as(n.n1)
+            .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
+            .outE().as('e2').inV().has('id', n.n3).limit(1).as(n.n3)
+            .project('nodes', 'edges')
+            .by(select(n.n0, n.n1, n.n2, n.n3)
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
+            .by(select('e0', 'e1', 'e2')
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+    )
+}
+return out
+`;
 
-    const message = { gremlin: gremlinQuery };
-    return JSON.stringify(message);
-  });
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
 }
 
 export function janusgraphFourHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
-  let statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const node0: string = graph_sample.n0;
-    const node1: string = graph_sample.n1;
-    const node2: string = graph_sample.n2;
-    const node3: string = graph_sample.n3;
-    const node4: string = graph_sample.n4;
-    const gremlinQuery =
-      `g.V().has('id', '${node0}').as('${node0}')` +
-      `.outE().as('e0')` +
-      `.inV().has('id', '${node1}').limit(1).as('${node1}')` +
-      `.outE().as('e1')` +
-      `.inV().has('id', '${node2}').limit(1).as('${node2}')` +
-      `.outE().as('e2')` +
-      `.inV().has('id', '${node3}').limit(1).as('${node3}')` +
-      `.outE().as('e3')` +
-      `.inV().has('id', '${node4}').limit(1).as('${node4}')` +
-      `.project('nodes', 'edges')` +
-      `.by(select('${node0}', '${node1}', '${node2}', '${node3}', '${node4}')` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('all_e0', 'all_e1', 'all_e2', 'all_e3')` +
-      `.by(select('${node0}').outE().where(inV().has('id', '${node1}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node1}').outE().where(inV().has('id', '${node2}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node2}').outE().where(inV().has('id', '${node3}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node3}').outE().where(inV().has('id', '${node4}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `)`;
+  const gremlinScript = `
+def out = []
+for (n in nodes) {
+    out.addAll(
+        g.V().has('id', n.n0).as(n.n0)
+            .outE().as('e0').inV().has('id', n.n1).limit(1).as(n.n1)
+            .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
+            .outE().as('e2').inV().has('id', n.n3).limit(1).as(n.n3)
+            .outE().as('e3').inV().has('id', n.n4).limit(1).as(n.n4)
+            .project('nodes', 'edges')
+            .by(select(n.n0, n.n1, n.n2, n.n3, n.n4)
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
+            .by(select('e0', 'e1', 'e2', 'e3')
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+    )
+}
+return out
+`;
 
-    const message = { gremlin: gremlinQuery };
-    return JSON.stringify(message);
-  });
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
 }
 
 export function janusgraphFiveHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
-  let statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const node0: string = graph_sample.n0;
-    const node1: string = graph_sample.n1;
-    const node2: string = graph_sample.n2;
-    const node3: string = graph_sample.n3;
-    const node4: string = graph_sample.n4;
-    const node5: string = graph_sample.n5;
-    const gremlinQuery =
-      `g.V().has('id', '${node0}').as('${node0}')` +
-      `.outE().as('e0')` +
-      `.inV().has('id', '${node1}').limit(1).as('${node1}')` +
-      `.outE().as('e1')` +
-      `.inV().has('id', '${node2}').limit(1).as('${node2}')` +
-      `.outE().as('e2')` +
-      `.inV().has('id', '${node3}').limit(1).as('${node3}')` +
-      `.outE().as('e3')` +
-      `.inV().has('id', '${node4}').limit(1).as('${node4}')` +
-      `.outE().as('e4')` +
-      `.inV().has('id', '${node5}').limit(1).as('${node5}')` +
-      `.by(select('${node0}', '${node1}', '${node2}', '${node3}', '${node4}', '${node5}')` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('type','label','properties').by(constant('vertex')).by(label()).by(valueMap()))` +
-      `.by(project('all_e0', 'all_e1', 'all_e2', 'all_e3', 'all_e4')` +
-      `.by(select('${node0}').outE().where(inV().has('id', '${node1}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node1}').outE().where(inV().has('id', '${node2}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node2}').outE().where(inV().has('id', '${node3}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node3}').outE().where(inV().has('id', '${node4}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `.by(select('${node4}').outE().where(inV().has('id', '${node5}'))).project('edge_label','edge_properties').by(label()).by(valueMap()).fold())` +
-      `)`;
+  const gremlinScript = `
+def out = []
+for (n in nodes) {
+    out.addAll(
+        g.V().has('id', n.n0).as(n.n0)
+            .outE().as('e0').inV().has('id', n.n1).limit(1).as(n.n1)
+            .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
+            .outE().as('e2').inV().has('id', n.n3).limit(1).as(n.n3)
+            .outE().as('e3').inV().has('id', n.n4).limit(1).as(n.n4)
+            .outE().as('e4').inV().has('id', n.n5).limit(1).as(n.n5)
+            .project('nodes', 'edges')
+            .by(select(n.n0, n.n1, n.n2, n.n3, n.n4, n.n5)
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
+            .by(select('e0', 'e1', 'e2', 'e3', 'e4')
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+    )
+}
+return out
+`;
 
-    const message = { gremlin: gremlinQuery };
-    return JSON.stringify(message);
-  });
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
 }
