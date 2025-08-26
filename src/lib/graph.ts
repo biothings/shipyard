@@ -417,15 +417,15 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
     const object: string = graph_sample.object;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
-    lookup${index}(func: eq(id, "${object}")) 
+    lookup${index}(func: eq(id, "${object}"))
     {
-      id 
-      name 
-      has_edge 
-        @filter(eq(id, "${subject}")) 
-        @facets(eq(predicate, "${predicate}")) 
+      id
+      name
+      has_edge
+        @filter(eq(id, "${subject}"))
+        @facets(eq(predicate, "${predicate}"))
         @facets(predicate: predicate) {
-          id 
+          id
           name
         }
     }`;
@@ -447,33 +447,33 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: str
     const node1: string = graph_sample.n1;
     const node2: string = graph_sample.n2;
     const query: string = `
-    twohoplookup${index}(func: eq(id, "${node0}"), first: 1) 
-    @cascade 
+    twohoplookup${index}(func: eq(id, "${node0}"), first: 1)
+    @cascade
     {
-      id 
-      name 
-      category 
+      id
+      name
+      category
 
-      has_edge 
+      has_edge
         (first: 1)
         @filter(
           eq(id, "${node1}")
         )
-        @facets(predicate: predicate) 
+        @facets(predicate: predicate)
         {
-          id 
-          name 
-          category 
+          id
+          name
+          category
 
-          has_edge 
-            (first: 1) 
+          has_edge
+            (first: 1)
             @filter(
               eq(id, "${node2}")
-            ) 
-            @facets(predicate: predicate) 
+            )
+            @facets(predicate: predicate)
             {
-              id 
-              name 
+              id
+              name
               category
             }
         }
@@ -499,31 +499,31 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: s
     const node3: string = graph_sample.n3;
     const query: string = `
     threehoplookup${index}(func: eq(id, "${node0}")) {
-      id 
-      name 
-      category 
+      id
+      name
+      category
 
-      has_edge 
+      has_edge
         (first: 1)
-        @filter(eq(id, "${node1}")) 
+        @filter(eq(id, "${node1}"))
         @facets(predicate: predicate) {
-        id 
+        id
         name
         category
 
-        has_edge 
+        has_edge
           (first: 1)
-          @filter(eq(id, "${node2}")) 
+          @filter(eq(id, "${node2}"))
           @facets(predicate: predicate) {
-            id 
+            id
             name
             category
 
-          has_edge 
+          has_edge
             (first: 1)
-            @filter(eq(id, "${node3}")) 
+            @filter(eq(id, "${node3}"))
             @facets(predicate: predicate) {
-              id 
+              id
               name
               category
             }
@@ -551,39 +551,39 @@ export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: st
     const node4: string = graph_sample.n4;
     const query: string = `
     fourhoplookup${index}(func: eq(id, "${node0}")) {
-      id 
-      name 
-      category 
+      id
+      name
+      category
 
-      has_edge 
+      has_edge
         (first: 1)
-        @filter(eq(id, "${node1}")) 
+        @filter(eq(id, "${node1}"))
         @facets(predicate: predicate) {
-        id 
+        id
         name
         category
 
-        has_edge 
+        has_edge
           (first: 1)
-          @filter(eq(id, "${node2}")) 
+          @filter(eq(id, "${node2}"))
           @facets(predicate: predicate) {
-            id 
+            id
             name
             category
 
-          has_edge 
+          has_edge
             (first: 1)
-            @filter(eq(id, "${node3}")) 
+            @filter(eq(id, "${node3}"))
             @facets(predicate: predicate) {
-              id 
+              id
               name
               category
 
-            has_edge 
+            has_edge
               (first: 1)
-              @filter(eq(id, "${node4}")) 
+              @filter(eq(id, "${node4}"))
               @facets(predicate: predicate) {
-                id 
+                id
                 name
                 category
               }
@@ -613,47 +613,47 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
     const node5: string = graph_sample.n5;
     const query: string = `
     fivehoplookup${index}(func: eq(id, "${node0}")) {
-      id 
-      name 
-      category 
+      id
+      name
+      category
 
-      has_edge 
+      has_edge
         (first: 1)
         @filter(eq(id, "${node1}"))
         @facets(predicate: predicate) {
-        id 
+        id
         name
         category
 
-        has_edge 
+        has_edge
           (first: 1)
-          @filter(eq(id, "${node2}")) 
+          @filter(eq(id, "${node2}"))
           @facets(predicate: predicate) {
-            id 
+            id
             name
             category
 
-          has_edge 
+          has_edge
             (first: 1)
-            @filter(eq(id, "${node3}")) 
+            @filter(eq(id, "${node3}"))
             @facets(predicate: predicate) {
-              id 
+              id
               name
               category
 
-            has_edge 
+            has_edge
               (first: 1)
-              @filter(eq(id, "${node4}")) 
+              @filter(eq(id, "${node4}"))
               @facets(predicate: predicate) {
-                id 
+                id
                 name
                 category
 
-              has_edge 
+              has_edge
                 (first: 1)
-                @filter(eq(id, "${node5}")) 
+                @filter(eq(id, "${node5}"))
                 @facets(predicate: predicate) {
-                  id 
+                  id
                   name
                   category
                 }
@@ -741,3 +741,149 @@ export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: num
   return JSON.stringify(message);
 }
 
+export function janusgraphTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  const gremlinScript = `
+def out = []
+for (n in nodes) {
+    out.addAll(
+        g.V().has('id', n.n0).as(n.n0)
+            .outE().as('e0').inV().has('id', n.n1).limit(1).as(n.n1)
+            .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
+            .project('nodes', 'edges')
+            .by(select(n.n0, n.n1, n.n2)
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
+            .by(select('e0', 'e1')
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+    )
+}
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
+
+}
+
+export function janusgraphThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  const gremlinScript = `
+def out = []
+for (n in nodes) {
+    out.addAll(
+        g.V().has('id', n.n0).as(n.n0)
+            .outE().as('e0').inV().has('id', n.n1).limit(1).as(n.n1)
+            .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
+            .outE().as('e2').inV().has('id', n.n3).limit(1).as(n.n3)
+            .project('nodes', 'edges')
+            .by(select(n.n0, n.n1, n.n2, n.n3)
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
+            .by(select('e0', 'e1', 'e2')
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+    )
+}
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
+}
+
+export function janusgraphFourHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  const gremlinScript = `
+def out = []
+for (n in nodes) {
+    out.addAll(
+        g.V().has('id', n.n0).as(n.n0)
+            .outE().as('e0').inV().has('id', n.n1).limit(1).as(n.n1)
+            .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
+            .outE().as('e2').inV().has('id', n.n3).limit(1).as(n.n3)
+            .outE().as('e3').inV().has('id', n.n4).limit(1).as(n.n4)
+            .project('nodes', 'edges')
+            .by(select(n.n0, n.n1, n.n2, n.n3, n.n4)
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
+            .by(select('e0', 'e1', 'e2', 'e3')
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+    )
+}
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
+}
+
+export function janusgraphFiveHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  const gremlinScript = `
+def out = []
+for (n in nodes) {
+    out.addAll(
+        g.V().has('id', n.n0).as(n.n0)
+            .outE().as('e0').inV().has('id', n.n1).limit(1).as(n.n1)
+            .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
+            .outE().as('e2').inV().has('id', n.n3).limit(1).as(n.n3)
+            .outE().as('e3').inV().has('id', n.n4).limit(1).as(n.n4)
+            .outE().as('e4').inV().has('id', n.n5).limit(1).as(n.n5)
+            .project('nodes', 'edges')
+            .by(select(n.n0, n.n1, n.n2, n.n3, n.n4, n.n5)
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
+                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
+            .by(select('e0', 'e1', 'e2', 'e3', 'e4')
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
+                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+    )
+}
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
+}
