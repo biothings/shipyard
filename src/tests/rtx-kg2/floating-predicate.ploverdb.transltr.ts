@@ -14,10 +14,10 @@ export const options = {
       executor: "shared-iterations",
       startTime: "0s",
       gracefulStop: "30s",
-      env: { NUM_SAMPLE: "1", HTTP_TIMEOUT: "15s" },
-      vus: 1000,
-      iterations: 25000,
-      maxDuration: "10m",
+      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "30s" },
+      vus: 5,
+      iterations: 100,
+      maxDuration: "15m",
     },
   },
 };
@@ -25,7 +25,7 @@ export const options = {
 export function setup() {
   const params = {
     headers: {
-      "Content-Type": "application/x-ndjson",
+      "Content-Type": "application/json",
     },
     timeout: "60s",
   };
@@ -37,10 +37,10 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: string = ploverFloatingPredicateQuery(graphDB, __ENV.NUM_SAMPLE);
   const url: string = EnvConfiguration["PLOVERDB_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
-  http.post(url, payload, data.params);
+  const requests: Array<Object> = ploverFloatingPredicateQuery(graphDB, __ENV.NUM_SAMPLE, url, data.params);
+  http.batch(requests);
 }
 
 export function handleSummary(data) {
