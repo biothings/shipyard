@@ -248,18 +248,19 @@ export function neo4jFloatingSubjectQuery(samplingDatabase: Database, sampleSize
 }
 
 
-export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number) {
-  let payloadStructure: object = {
-    message: {
-      query_graph: {
-        edges: {},
-        nodes: {},
-      },
-    },
-  };
-
+export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number, ploverEndpoint: string, parameters: Object) {
+  let requests: Array<object> = [];
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
   samples.forEach( (graphSample, index) => {
+      let payload: object = {
+        message: {
+          query_graph: {
+            edges: {},
+            nodes: {},
+          },
+        },
+      };
+
       const edge_label: string = `e${ index }`;
       const node_label_subject: string = `n0-${ edge_label }`;
       const node_label_object: string = `n1-${ edge_label }`;
@@ -279,27 +280,35 @@ export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number)
         ids: [graphSample.object],
         categories: [graphSample.object_type],
       };
-      payloadStructure.message.query_graph.edges[edge_label] = edge;
-      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
-      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+
+      payload.message.query_graph.edges[edge_label] = edge;
+      payload.message.query_graph.nodes[node_label_subject] = subject_node;
+      payload.message.query_graph.nodes[node_label_object] = object_node;
+      requests.push(
+        {
+          method: 'POST',
+          url: ploverEndpoint,
+          body: JSON.stringify(payload),
+          params: parameters
+        }
+      );
   });
 
-  const payload: string = JSON.stringify(payloadStructure);
-  return payload;
+  return requests;
 }
 
-export function ploverFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
-  let payloadStructure: object = {
-    message: {
-      query_graph: {
-        edges: {},
-        nodes: {},
-      }
-    }
-  };
-
+export function ploverFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number, ploverEndpoint: string, parameters: Object) {
+  let requests: Array<object> = [];
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
   samples.forEach( (graphSample, index) => {
+      let payload: object = {
+        message: {
+          query_graph: {
+            edges: {},
+            nodes: {},
+          }
+        }
+      };
       const edge_label: string = `e${ index }`;
       const node_label_subject: string = `n0-${ edge_label }`;
       const node_label_object: string = `n1-${ edge_label }`;
@@ -318,28 +327,34 @@ export function ploverFloatingPredicateQuery(samplingDatabase: Database, sampleS
         ids: [graphSample.object],
         categories: [graphSample.object_type],
       };
-      payloadStructure.message.query_graph.edges[edge_label] = edge;
-      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
-      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+      payload.message.query_graph.edges[edge_label] = edge;
+      payload.message.query_graph.nodes[node_label_subject] = subject_node;
+      payload.message.query_graph.nodes[node_label_object] = object_node;
+      requests.push(
+        {
+          method: 'POST',
+          url: ploverEndpoint,
+          body: JSON.stringify(payload),
+          params: parameters
+        }
+      );
   });
-
-  const payload: string = JSON.stringify(payloadStructure);
-  return payload;
+  return requests;
 }
 
 
-export function ploverFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
-  let payloadStructure: object = {
-    message: {
-      query_graph: {
-        edges: {},
-        nodes: {},
-      }
-    }
-  };
-
+export function ploverFloatingObjectQuery(samplingDatabase: Database, sampleSize: number, ploverEndpoint: string, parameters: Object) {
+  let requests: Array<object> = [];
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
   samples.forEach( (graphSample, index) => {
+      let payload: object = {
+        message: {
+          query_graph: {
+            edges: {},
+            nodes: {},
+          }
+        }
+      };
       const edge_label: string = `e${ index }`;
       const node_label_subject: string = `n0-${ edge_label }`;
       const node_label_object: string = `n1-${ edge_label }`;
@@ -358,28 +373,34 @@ export function ploverFloatingObjectQuery(samplingDatabase: Database, sampleSize
       const object_node: object = {
         categories: [graphSample.object_type],
       };
-      payloadStructure.message.query_graph.edges[edge_label] = edge;
-      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
-      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+      payload.message.query_graph.edges[edge_label] = edge;
+      payload.message.query_graph.nodes[node_label_subject] = subject_node;
+      payload.message.query_graph.nodes[node_label_object] = object_node;
+      requests.push(
+        {
+          method: 'POST',
+          url: ploverEndpoint,
+          body: JSON.stringify(payload),
+          params: parameters
+        }
+      );
   });
-
-  const payload: string = JSON.stringify(payloadStructure);
-  return payload;
+  return requests;
 }
 
 
-export function ploverFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
-  let payloadStructure: object = {
-    message: {
-      query_graph: {
-        edges: {},
-        nodes: {},
-      }
-    }
-  };
-
+export function ploverFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number, ploverEndpoint: string, parameters: Object) {
+  let requests: Array<object> = [];
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
   samples.forEach( (graphSample, index) => {
+      let payload: object = {
+        message: {
+          query_graph: {
+            edges: {},
+            nodes: {},
+          }
+        }
+      };
       const edge_label: string = `e${ index }`;
       const node_label_subject: string = `n0-${ edge_label }`;
       const node_label_object: string = `n1-${ edge_label }`;
@@ -398,13 +419,19 @@ export function ploverFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
         ids: [graphSample.object],
         categories: [graphSample.object_type],
       };
-      payloadStructure.message.query_graph.edges[edge_label] = edge;
-      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
-      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+      payload.message.query_graph.edges[edge_label] = edge;
+      payload.message.query_graph.nodes[node_label_subject] = subject_node;
+      payload.message.query_graph.nodes[node_label_object] = object_node;
+      requests.push(
+        {
+          method: 'POST',
+          url: ploverEndpoint,
+          body: JSON.stringify(payload),
+          params: parameters
+        }
+      );
   });
-
-  const payload: string = JSON.stringify(payloadStructure);
-  return payload;
+  return requests;
 }
 
 
