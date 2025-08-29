@@ -754,19 +754,145 @@ export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
 export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
   let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
-  let union_clauses: Array<string> = [];
-  samples.forEach( graph_sample => {
-    const subject: string = graph_sample.subject;
-    const object: string = graph_sample.object;
-    const predicate: string = graph_sample.predicate.replace("biolink:","");
-    const unionClause: string = `__.V().has('id', '${subject}').outE('${predicate}').where(__.inV().has('id', '${object}'))`;
-    union_clauses.push(unionClause);
-  });
-  const unionChain: string = union_clauses.join(", ");
-  const gremlinQuery: string = `g.union(${unionChain}).project('edge_label', 'edge_properties', 'from_vertex_label', 'from_vertex_properties', 'to_vertex_label', 'to_vertex_properties').by(label()).by(valueMap()).by(outV().label()).by(outV().valueMap()).by(inV().label()).by(inV().valueMap())`
-  const message: object = { "gremlin": gremlinQuery }
+  samples = samples.map((sample: any) => ({
+    ...sample,
+    predicate: typeof sample.predicate === "string"
+      ? sample.predicate.replace(/^biolink:/, "")
+      : sample.predicate
+  }));
+
+  const gremlinScript = `
+def out = []
+for (sample in samples) {
+  out.addAll(
+    g.V().has('id', sample.subject).as(sample.subject)
+        .outE(sample.predicate).as('edge')
+        .inV().has('id', sample.object).limit(1).as(sample.object)
+        .project('subject', 'edges', 'object')
+        .by(select(sample.subject).by(valueMap('id', 'name', 'category')))
+        .by(select(sample.subject).outE(sample.predicate).where(inV().has('id', sample.object)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+        .by(select(sample.object).by(valueMap('id', 'name', 'category')))
+  )
+}
+return out
+`;
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      samples: samples
+    }
+  };
   return JSON.stringify(message);
 }
+
+export function janusgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+
+  samples = samples.map((sample: any) => ({
+    ...sample,
+    object: typeof sample.object === "string"
+      ? sample.object.replace(/^biolink:/, "")
+      : sample.object
+  }));
+
+  const gremlinScript = `
+def out = []
+
+for (sample in samples) {
+    out.addAll(
+        g.V().has('id', sample.subject).as('subject')
+        .outE(sample.predicate).as('edge')
+        .inV().hasLabel(sample.object).as('object')
+        .select('subject', 'edge', 'object')
+        .by(valueMap('id', 'name', 'category'))
+        .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+        .by(valueMap('id', 'name', 'category'))
+    )
+}
+
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
+
+}
+
+export function janusgraphFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+
+  const gremlinScript = `
+def out = []
+
+for (sample in samples) {
+    out.addAll(
+        g.V().has('id', sample.subject).as('subject')
+        .outE().as('edge')
+        .inV().has('id', sample.object).as('object')
+        .select('subject', 'edge', 'object')
+        .by(valueMap('id', 'name', 'category'))
+        .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+        .by(valueMap('id', 'name', 'category'))
+    )
+}
+
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
+
+}
+
+export function janusgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+
+  samples = samples.map((sample: any) => ({
+    ...sample,
+    subject: typeof sample.subject === "string"
+      ? sample.subject.replace(/^biolink:/, "")
+      : sample.subject
+  }));
+
+  const gremlinScript = `
+def out = []
+
+for (sample in samples) {
+    out.addAll(
+        g.V().has('id', sample.object).as('object')
+        .inE(sample.predicate).as('edge')
+        .outV().hasLabel(sample.subject).as('subject')
+        .select('subject', 'edge', 'object')
+        .by(valueMap('id', 'name', 'category'))
+        .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+        .by(valueMap('id', 'name', 'category'))
+    )
+}
+
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      nodes: samples
+    }
+  };
+  return JSON.stringify(message);
+
+}
+
+
 
 export function janusgraphTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
@@ -780,12 +906,12 @@ for (n in nodes) {
             .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
             .project('nodes', 'edges')
             .by(select(n.n0, n.n1, n.n2)
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
-            .by(select('e0', 'e1')
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category')))
+            .by(project('all_e0', 'all_e1')
+                .by(select(n.n0).outE().where(inV().has('id', n.n1)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n1).outE().where(inV().has('id', n.n2)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold()))
     )
 }
 return out
@@ -814,14 +940,14 @@ for (n in nodes) {
             .outE().as('e2').inV().has('id', n.n3).limit(1).as(n.n3)
             .project('nodes', 'edges')
             .by(select(n.n0, n.n1, n.n2, n.n3)
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
-            .by(select('e0', 'e1', 'e2')
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category')))
+            .by(project('all_e0', 'all_e1', 'all_e2')
+                .by(select(n.n0).outE().where(inV().has('id', n.n1)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n1).outE().where(inV().has('id', n.n2)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n2).outE().where(inV().has('id', n.n3)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold()))
     )
 }
 return out
@@ -850,16 +976,16 @@ for (n in nodes) {
             .outE().as('e3').inV().has('id', n.n4).limit(1).as(n.n4)
             .project('nodes', 'edges')
             .by(select(n.n0, n.n1, n.n2, n.n3, n.n4)
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
-            .by(select('e0', 'e1', 'e2', 'e3')
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category')))
+            .by(project('all_e0', 'all_e1', 'all_e2', 'all_e3')
+                .by(select(n.n0).outE().where(inV().has('id', n.n1)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n1).outE().where(inV().has('id', n.n2)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n2).outE().where(inV().has('id', n.n3)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n3).outE().where(inV().has('id', n.n4)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold()))
     )
 }
 return out
@@ -889,18 +1015,18 @@ for (n in nodes) {
             .outE().as('e4').inV().has('id', n.n5).limit(1).as(n.n5)
             .project('nodes', 'edges')
             .by(select(n.n0, n.n1, n.n2, n.n3, n.n4, n.n5)
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
-            .by(select('e0', 'e1', 'e2', 'e3', 'e4')
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category')))
+            .by(project('all_e0', 'all_e1', 'all_e2', 'all_e3', 'all_e4')
+                .by(select(n.n0).outE().where(inV().has('id', n.n1)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n1).outE().where(inV().has('id', n.n2)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n2).outE().where(inV().has('id', n.n3)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n3).outE().where(inV().has('id', n.n4)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n4).outE().where(inV().has('id', n.n5)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold()))
     )
 }
 return out
