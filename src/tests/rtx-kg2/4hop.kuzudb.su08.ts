@@ -11,7 +11,7 @@ const fourhopDB = sql.open(driver, "/src/data/four-hop.db");
 const tableName: string = "fourhop";
 
 export function setup() {
-  const db: Database = new Database(__ENV["KUZUDB_PATH"], 0, true, true);
+  const db: Database = new Database("/src/data/rtxkg2.kuzu", 0, true, true);
   const conn: Connection = new Connection(db);
   return { connection: conn }
 }

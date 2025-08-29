@@ -11,7 +11,7 @@ const graphDB = sql.open(driver, "/src/data/graph_sample.db");
 // Import the Kùzu module (ESM)
 
 export function setup() {
-  const db: Database = new Database(__ENV["KUZUDB_PATH"], 0, true, true);
+  const db: Database = new Database("/src/data/rtxkg2.kuzu", 0, true, true);
   const conn: Connection = new Connection(db);
   return { connection: conn }
 }
