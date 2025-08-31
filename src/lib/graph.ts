@@ -444,7 +444,8 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
     const object: string = graph_sample.object;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
-    lookup${index}(func: eq(id, "${object}"))
+    lookup${index}
+    (func: eq(id, "${object}"))
     {
       id
       name
@@ -704,8 +705,24 @@ export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize
   const statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
     const subject: string = graph_sample.subject;
+    const object_type: string = graph_sample.object_type;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
-    const query: string = `lookup${index}(func: eq(id, "${subject}")) {~has_edge (first:100) @facets(eq(predicate, "${predicate}")) {id name category @facets(predicate: predicate) {id name}}}`
+    const query: string = `
+    lookup${index}(func: eq(id, "${subject}")) {
+      ~has_edge (first:100) 
+      @facets(eq(predicate, "${predicate}")) 
+      {
+        id 
+        name 
+        category 
+        @filter(eq(category, "${object_type}"))
+        @facets(predicate: predicate) 
+        {
+          id 
+          name
+        }
+      }
+    }`
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -722,7 +739,17 @@ export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleS
   samples.forEach( (graph_sample, index) => {
     const subject: string = graph_sample.subject;
     const object: string = graph_sample.object;
-    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @filter(eq(id, "${subject}")) @facets(predicate: predicate) {id name}}`
+    const query: string = `
+    lookup${index}(func: eq(id, "${object}")) {
+      id 
+      name 
+      has_edge @filter(eq(id, "${subject}")) 
+      @facets(predicate: predicate) 
+      {
+        id 
+        name
+      }
+    }`
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -737,10 +764,22 @@ export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
   const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
   const statements: Array<string> = [];
   samples.forEach( (graph_sample, index) => {
-    // const subject: string = graph_sample.subject;
     const object: string = graph_sample.object;
+    const subject_type: string = graph_sample.subject_type;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
-    const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @facets(eq(predicate, "${predicate}")) @facets(predicate: predicate) {id name}}`
+    const query: string = `
+    lookup${index}(func: eq(id, "${object}")) {
+      id 
+      name 
+      has_edge 
+      @filter(eq(category, "${subject_type}"))
+      @facets(eq(predicate, "${predicate}")) 
+      @facets(predicate: predicate) 
+      {
+        id
+        name
+      }
+    }`
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
