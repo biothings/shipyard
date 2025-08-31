@@ -3,7 +3,7 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { nodenormQuery } from "../../lib/curie.ts";
+import { nodenormElasticsearchQuery } from "../../lib/curie.ts";
 import { EnvConfiguration } from "../../configuration/environment.ts";
 
 const curie_db = sql.open(driver, "/src/data/nodenorm_curie.db");
@@ -14,10 +14,10 @@ export const options = {
       executor: "shared-iterations",
       startTime: "0s",
       gracefulStop: "5s",
-      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "20s" },
+      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "60s" },
       vus: 5,
-      iterations: 100,
-      maxDuration: "1m",
+      iterations: 250,
+      maxDuration: "15m",
     },
   },
 };
@@ -38,7 +38,7 @@ export function teardown() {
 
 export default function (data: Object) {
   const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["ci"];
-  const payload: string = nodenormQuery(
+  const payload: string = nodenormElasticsearchQuery(
     curie_db,
     __ENV.NUM_SAMPLE,
   );
