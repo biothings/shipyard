@@ -18,9 +18,9 @@ export function curieSamples(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
 
   let curies: Array<string> = [];
-  for (let sample of curies) {
-    curies.push(sample["curie"]);
-  }
+  samples.forEach((curie_sample) => {
+    curies.push(curie_sample.curie);
+  });
   return curies;
 }
 
@@ -29,9 +29,9 @@ export function trafficCuries(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
 
   let curies: Array<string> = [];
-  for (let sample of samples) {
-    curies.push(sample["curies"])
-  }
+  samples.forEach((curie_sample) => {
+    curies.push(curie_sample.curie);
+  });
   return curies;
 }
 
