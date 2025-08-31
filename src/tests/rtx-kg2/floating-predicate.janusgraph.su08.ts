@@ -25,7 +25,7 @@ export const options = {
 export function setup() {
   const params = {
     headers: {
-      "Content-Type": "application/dql",
+      "Content-Type": "application/json",
     },
     timeout: "60s",
   };
