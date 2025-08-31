@@ -16,3 +16,7 @@ export default function (data: LoadPayload) {
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }
+
+export function handleSummary(data) {
+  return { "/testoutput/fixed.elasticsearch.adjacency-list.biothings-es8.ts.json": JSON.stringify(data) };
+}

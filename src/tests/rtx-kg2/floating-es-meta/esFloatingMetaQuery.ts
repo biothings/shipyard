@@ -17,11 +17,6 @@ const getMain =
     http.post(url, payload, data.params);
   };
 
-const getSummaryHandler = (naming: string) => (data) => {
-  return {
-    [`/testoutput/floating-${naming}-elasticsearch.biothings-es8.ts.json`]:JSON.stringify(data),
-  };
-};
 
 // pass generated main and handleSummary methods based on floating fields given
 const allModules = (
@@ -29,10 +24,8 @@ const allModules = (
   index: IndexName = "rtx_kg2_edges_merged", // backwards compatibility
 ) => {
   const main = getMain(floatingField, index);
-  const handleSummary = getSummaryHandler(floatingField + "-" + index);
   return {
     main,
-    handleSummary,
   };
 };
 
