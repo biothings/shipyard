@@ -42,7 +42,7 @@ export function teardown() {
   graphDB.close();
 }
 
-export default function () {
+export default function (data: Object) {
   const payload: string = neo4jFloatingPredicateQuery(
     graphDB,
     __ENV.NUM_SAMPLE,
