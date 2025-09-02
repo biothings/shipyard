@@ -1,13 +1,12 @@
-import http from 'k6/http';
+import http from "k6/http";
 import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { janusgraphFixedQuery } from '../../lib/graph.ts';
-import { EnvConfiguration } from '../../configuration/environment.ts';
+import { janusgraphFloatingObjectQuery } from "../../lib/graph.ts";
+import { EnvConfiguration } from "../../configuration/environment.ts";
 
 const graphDB = sql.open(driver, "/src/data/graph_sample.db");
-
 
 export const options = {
   scenarios: {
@@ -23,30 +22,29 @@ export const options = {
   },
 };
 
-
 export function setup() {
-
   const params = {
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    timeout: '60s'
+    timeout: "60s",
   };
-  return { params: params }
+  return { params: params };
 }
-
 
 export function teardown() {
   graphDB.close();
 }
 
-export default function (data: object) {
-  const payload: string = janusgraphFixedQuery(graphDB, __ENV.NUM_SAMPLE);
+export default function (data: Object) {
+  const payload: string = janusgraphFloatingObjectQuery(graphDB, __ENV.NUM_SAMPLE);
   const url: string = EnvConfiguration["JANUSGRAPH_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
-  http.post(url, payload, data.params)
+  http.post(url, payload, data.params);
 }
 
 export function handleSummary(data) {
-  return { "/testoutput/fixed.janusgraph.su08.ts.json": JSON.stringify(data) };
+  return {
+    "/testoutput/floating-object.janusgraph.su08.ts.json": JSON.stringify(data),
+  };
 }
