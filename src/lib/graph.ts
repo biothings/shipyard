@@ -804,7 +804,7 @@ for (sample in samples) {
     out.addAll(
         g.V().has('id', sample.subject).as('subject')
         .outE(sample.predicate.replace('biolink:', '')).as('edge')
-        .inV().hasLabel(sample.object.replace('biolink:', '')).as('object')
+        .inV().hasLabel(sample.object_type.replace('biolink:', '')).as('object')
         .select('subject', 'edge', 'object')
         .by(valueMap('id', 'name', 'category'))
         .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
@@ -873,7 +873,7 @@ for (sample in samples) {
     out.addAll(
         g.V().has('id', sample.object).as('object')
         .inE(sample.predicate.replace('biolink:', '')).as('edge')
-        .outV().hasLabel(sample.subject.replace('biolink:', '')).as('subject')
+        .outV().hasLabel(sample.subject_type.replace('biolink:', '')).as('subject')
         .select('subject', 'edge', 'object')
         .by(valueMap('id', 'name', 'category'))
         .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
