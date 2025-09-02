@@ -444,18 +444,20 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
     const object: string = graphSample.object;
     const predicate: string = graphSample.predicate.replace("biolink:","");
     const query: string = `
-    lookup${index}
-    (func: eq(id, "${object}"))
-    {
+    node${index}
+    (func: eq(id, "${object}")) @cascade {
       id
       name
-      has_edge
-        @filter(eq(id, "${subject}"))
-        @facets(eq(predicate, "${predicate}"))
-        @facets(predicate: predicate) {
+      in_edges: ~source @filter(eq(predicate, "${predicate}")) {
+        predicate
+        primary_knowledge_source
+        knowledge_level
+        domain_range_exclusion
+        node: target @filter(eq(id, "${subject}")) {
           id
           name
         }
+      }
     }`;
     statements.push(query);
   });
@@ -709,20 +711,18 @@ export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
     lookup${index}(func: eq(id, "${subject}")) {
-      ~has_edge (first:100) 
-      @facets(eq(predicate, "${predicate}")) 
-      {
-        id 
-        name 
-        category 
-        @filter(eq(category, "${object_type}"))
-        @facets(predicate: predicate) 
-        {
-          id 
-          name
-        }
+      id
+      name
+      out_edges: ~target @filter(eq(predicate, "${predicate}")) {
+          predicate
+          source {
+            id
+            name
+            category
+            @filter(eq(category, "${object_type}"))
+          }
       }
-    }`
+    }`;
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -740,16 +740,21 @@ export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleS
     const subject: string = graph_sample.subject;
     const object: string = graph_sample.object;
     const query: string = `
-    lookup${index}(func: eq(id, "${object}")) {
-      id 
-      name 
-      has_edge @filter(eq(id, "${subject}")) 
-      @facets(predicate: predicate) 
-      {
-        id 
-        name
+    node${index}
+    (func: eq(id, "${object}")) @cascade {
+      id
+      name
+      in_edges: ~source {
+        predicate
+        primary_knowledge_source
+        knowledge_level
+        domain_range_exclusion
+        node: target @filter(eq(id, "${subject}")) {
+          id
+          name
+        }
       }
-    }`
+    }`;
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -768,18 +773,23 @@ export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
     const subject_type: string = graph_sample.subject_type;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
-    lookup${index}(func: eq(id, "${object}")) {
-      id 
-      name 
-      has_edge 
-      @filter(eq(category, "${subject_type}"))
-      @facets(eq(predicate, "${predicate}")) 
-      @facets(predicate: predicate) 
-      {
-        id
-        name
+    node${index}(func: eq(id, "${object}")) @cascade {
+      id
+      name
+      category
+      in_edges: ~source @filter(eq(predicate, "${predicate}")) {
+        predicate
+        primary_knowledge_source
+        knowledge_level
+        domain_range_exclusion
+        node: target @filter(eq(category, "${subject_type}")) {
+          id
+          name
+          category
+        }
       }
-    }`
+    }`;
+
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
