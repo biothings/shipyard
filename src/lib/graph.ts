@@ -832,7 +832,7 @@ return out
   const message = {
     gremlin: gremlinScript,
     bindings: {
-      nodes: samples
+      samples: samples
     }
   };
   return JSON.stringify(message);
@@ -863,7 +863,7 @@ return out
   const message = {
     gremlin: gremlinScript,
     bindings: {
-      nodes: samples
+      samples: samples
     }
   };
   return JSON.stringify(message);
@@ -901,7 +901,7 @@ return out
   const message = {
     gremlin: gremlinScript,
     bindings: {
-      nodes: samples
+      samples: samples
     }
   };
   return JSON.stringify(message);
