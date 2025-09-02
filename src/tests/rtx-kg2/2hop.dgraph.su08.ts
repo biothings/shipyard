@@ -10,19 +10,19 @@ const twohopDB = sql.open(driver, "/src/data/two-hop.db");
 const tableName: string = "twohop";
 
 
-export const options = {
-  scenarios: {
-    full_load: {
-      executor: 'shared-iterations',
-      startTime: '0m',
-      gracefulStop: '30s',
-      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '5s'},
-      vus: 5,
-      iterations: 1000,
-      maxDuration: '5m',
-    }
-  },
-};
+// export const options = {
+//   scenarios: {
+//     full_load: {
+//       executor: 'shared-iterations',
+//       startTime: '0m',
+//       gracefulStop: '30s',
+//       env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '5s'},
+//       vus: 5,
+//       iterations: 1000,
+//       maxDuration: '5m',
+//     }
+//   },
+// };
 
 
 export function setup() {
@@ -30,7 +30,8 @@ export function setup() {
     headers: {
       'Content-Type': 'application/dql',
     },
-    timeout: '60s'
+    timeout: '60s',
+    responseType: "binary"
   };
   return { params: params }
 }
@@ -43,7 +44,11 @@ export default function (data: Object) {
   const payload: Uint8Array<ArrayBuffer> = dgraphTwoHopQuery(twohopDB, tableName, __ENV.NUM_SAMPLE, 50);
   const url: string = EnvConfiguration["DGRAPH_QUERY_URL"]
   data.params.timeout = __ENV.HTTP_TIMEOUT;
-  http.post(url, payload, data.params);
+  const resp = http.post(url, payload, data.params);
+  const bodyView = new Uint8Array(resp.body);
+  console.log(bodyView.byteLength);
+  console.log(resp.timings);
+  console.log(resp.status_text);
 }
 
 export function handleSummary(data) {
