@@ -1,3 +1,4 @@
+import http from "k6/http";
 import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
@@ -5,16 +6,7 @@ import driver from "k6/x/sql/driver/sqlite3";
 import { kuzudbFloatingSubjectQuery } from '../../lib/graph.ts';
 import { EnvConfiguration } from '../../configuration/environment.ts';
 
-import { Database, Connection } from "kuzu";
-
 const graphDB = sql.open(driver, "/src/data/graph_sample.db");
-// Import the Kùzu module (ESM)
-
-export function setup() {
-  const db: Database = new Database("/src/data/rtxkg2.kuzu", 0, true, true);
-  const conn: Connection = new Connection(db);
-  return { connection: conn }
-}
 
 
 export const options = {
@@ -31,13 +23,26 @@ export const options = {
   },
 };
 
+export function setup() {
+  const params = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    timeout: "60s",
+  };
+  return { params: params };
+}
+
 
 export function teardown() {
   graphDB.close();
 }
 
 export default function (data: Object) {
-  kuzudbFloatingObjectQuery(graphDB, __ENV.NUM_SAMPLE, data.connection);
+  const payload: string = kuzudbFloatingSubjectQuery(graphDB, __ENV.NUM_SAMPLE);
+  const url: string = EnvConfiguration["KUZUDB_QUERY_URL"];
+  data.params.timeout = __ENV.HTTP_TIMEOUT;
+  http.post(url, payload, data.params);
 }
 
 export function handleSummary(data) {

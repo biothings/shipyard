@@ -3,8 +3,6 @@ import { Database, Row } from "k6/x/sql";
 
 import { graphSamples, multihopSamples} from "./sampling.ts";
 
-import { Connection } from "kuzu";
-
 export type FloatingField = "subject" | "object" | "predicate";
 export type IndexName = "rtx_kg2_edges_merged" | "rtx_kg2_nodes_adjacency_list";
 
@@ -933,7 +931,7 @@ return out
   return JSON.stringify(message);
 }
 
-export function kuzudbFixedQuery(samplingDatabase: Database, sampleSize: number, dbConnection: Connection) {
+export function kuzudbFixedQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize);
 
   const queryStatements: Array<string> = [];
@@ -950,12 +948,12 @@ export function kuzudbFixedQuery(samplingDatabase: Database, sampleSize: number,
     RETURN *;`
     queryStatements.push(query);
   }
-  const result = dbConnection.query(queryStatements);
-  return result;
+  const payload = JSON.stringify(queryStatements);
+  return payload;
 }
 
 
-export function kuzudbFloatingObjectQuery(samplingDatabase: Database, sampleSize: number, dbConnection: Connection) {
+export function kuzudbFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize);
 
   const queryStatements: Array<string> = [];
@@ -972,11 +970,11 @@ export function kuzudbFloatingObjectQuery(samplingDatabase: Database, sampleSize
     RETURN *;`
     queryStatements.push(query);
   }
-  const result = dbConnection.query(queryStatements);
-  return result;
+  const payload = JSON.stringify(queryStatements);
+  return payload;
 }
 
-export function kuzudbFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number, dbConnection: Connection) {
+export function kuzudbFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize);
 
   const queryStatements: Array<string> = [];
@@ -993,11 +991,11 @@ export function kuzudbFloatingPredicateQuery(samplingDatabase: Database, sampleS
     RETURN *;`
     queryStatements.push(query);
   }
-  const result = dbConnection.query(queryStatements);
-  return result;
+  const payload = JSON.stringify(queryStatements);
+  return payload;
 }
 
-export function kuzudbFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number, dbConnection: Connection) {
+export function kuzudbFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize);
 
   const queryStatements: Array<string> = [];
@@ -1014,11 +1012,11 @@ export function kuzudbFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
     RETURN *;`
     queryStatements.push(query);
   }
-  const result = dbConnection.query(queryStatements);
-  return result;
+  const payload = JSON.stringify(queryStatements);
+  return payload;
 }
 
-export function kuzudbTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number, dbConnection: Connection) {
+export function kuzudbTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number, ) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   const queryStatements: Array<string> = [];
@@ -1033,11 +1031,11 @@ export function kuzudbTwoHopQuery(samplingDatabase: Database, databaseTable: str
     RETURN *;`
     queryStatements.push(query);
   }
-  const result = dbConnection.query(queryStatements);
-  return result;
+  const payload = JSON.stringify(queryStatements);
+  return payload;
 }
 
-export function kuzudbThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number, dbConnection: Connection) {
+export function kuzudbThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   const queryStatements: Array<string> = [];
@@ -1054,11 +1052,11 @@ export function kuzudbThreeHopQuery(samplingDatabase: Database, databaseTable: s
     RETURN *;`
     queryStatements.push(query);
   }
-  const result = dbConnection.query(queryStatements);
-  return result;
+  const payload = JSON.stringify(queryStatements);
+  return payload;
 }
 
-export function kuzudbFourHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number, dbConnection: Connection) {
+export function kuzudbFourHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number,) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   const queryStatements: Array<string> = [];
@@ -1077,11 +1075,11 @@ export function kuzudbFourHopQuery(samplingDatabase: Database, databaseTable: st
     RETURN *;`
     queryStatements.push(query);
   }
-  const result = dbConnection.query(queryStatements);
-  return result;
+  const payload = JSON.stringify(queryStatements);
+  return payload;
 }
 
-export function kuzudbFiveHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number, dbConnection: Connection) {
+export function kuzudbFiveHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number,) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   const queryStatements: Array<string> = [];
@@ -1102,6 +1100,6 @@ export function kuzudbFiveHopQuery(samplingDatabase: Database, databaseTable: st
     RETURN *;`
     queryStatements.push(query);
   }
-  const result = dbConnection.query(queryStatements);
-  return result;
+  const payload = JSON.stringify(queryStatements);
+  return payload;
 }
