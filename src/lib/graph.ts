@@ -941,8 +941,7 @@ export function kuzudbFixedQuery(samplingDatabase: Database, sampleSize: number)
     const object = graphSample.object;
     const object_type = graphSample.object_type;
     const predicate = graphSample.predicate;
-    const query: string = `
-    MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"}) 
+    const query: string = `MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"}) 
     - [\`e01\`:Edge {\`predicate\`: "${predicate}"}] 
     - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"}) 
     RETURN *;`
@@ -1026,8 +1025,8 @@ export function kuzudbTwoHopQuery(samplingDatabase: Database, databaseTable: str
     const node2 = graphSample.n2;
     const query: string = `
     MATCH 
-      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}"}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
-      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}"}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}) 
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1046,9 +1045,9 @@ export function kuzudbThreeHopQuery(samplingDatabase: Database, databaseTable: s
     const node3 = graphSample.n3;
     const query: string = `
     MATCH 
-      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}"}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
-      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}"}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
-      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}"}] - (\`n3\`:Node {\`id\`: "${node3}"}), 
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
+      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}) 
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1068,10 +1067,10 @@ export function kuzudbFourHopQuery(samplingDatabase: Database, databaseTable: st
     const node4 = graphSample.n4;
     const query: string = `
     MATCH 
-      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}"}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
-      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}"}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
-      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}"}] - (\`n3\`:Node {\`id\`: "${node3}"}), 
-      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}"}] - (\`n4\`:Node {\`id\`: "${node4}"}), 
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
+      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}), 
+      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"}) 
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1092,11 +1091,11 @@ export function kuzudbFiveHopQuery(samplingDatabase: Database, databaseTable: st
     const node5 = graphSample.n5;
     const query: string = `
     MATCH 
-      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}"}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
-      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}"}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
-      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}"}] - (\`n3\`:Node {\`id\`: "${node3}"}), 
-      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}"}] - (\`n4\`:Node {\`id\`: "${node4}"}), 
-      (\`n4\`:Node {\`id\`: "${node4}"}) - [\`e05\`:Edge {}"}] - (\`n5\`:Node {\`id\`: "${node5}"}), 
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
+      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}), 
+      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"}), 
+      (\`n4\`:Node {\`id\`: "${node4}"}) - [\`e05\`:Edge {}] - (\`n5\`:Node {\`id\`: "${node5}"}) 
     RETURN *;`
     queryStatements.push(query);
   }
