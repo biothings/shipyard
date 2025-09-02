@@ -40,7 +40,7 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: string = kuzudbFiveHopQuery(graphDB, __ENV.NUM_SAMPLE);
+  const payload: string = kuzudbFiveHopQuery(fivehopDB, tableName, __ENV.NUM_SAMPLE);
   const url: string = EnvConfiguration["KUZUDB_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
