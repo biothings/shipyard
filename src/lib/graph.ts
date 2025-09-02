@@ -707,17 +707,17 @@ export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize
     const predicate: string = graphSample.predicate.replace("biolink:","");
     const query: string = `
     lookup${index}(
-      func: eq(id, "${subject}")) 
+      func: eq(id, "${subject}"))
       {
-        ~has_edge (first:100) 
-        @facets(eq(predicate, "${predicate}")) 
+        ~has_edge (first:100)
+        @facets(eq(predicate, "${predicate}"))
         {
-          id 
-          name 
-          category 
-          @facets(predicate: predicate) 
+          id
+          name
+          category
+          @facets(predicate: predicate)
           {
-            id 
+            id
             name
           }
         }
@@ -770,23 +770,16 @@ export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
 export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
   let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
-  samples = samples.map((sample: any) => ({
-    ...sample,
-    predicate: typeof sample.predicate === "string"
-      ? sample.predicate.replace(/^biolink:/, "")
-      : sample.predicate
-  }));
-
   const gremlinScript = `
 def out = []
 for (sample in samples) {
   out.addAll(
     g.V().has('id', sample.subject).as(sample.subject)
-        .outE(sample.predicate).as('edge')
+        .outE(sample.predicate.replace('biolink:', '')).as('edge')
         .inV().has('id', sample.object).limit(1).as(sample.object)
         .project('subject', 'edges', 'object')
         .by(select(sample.subject).by(valueMap('id', 'name', 'category')))
-        .by(select(sample.subject).outE(sample.predicate).where(inV().has('id', sample.object)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+        .by(select(sample.subject).outE(sample.predicate.replace('biolink:', '')).where(inV().has('id', sample.object)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
         .by(select(sample.object).by(valueMap('id', 'name', 'category')))
   )
 }
@@ -804,21 +797,14 @@ return out
 export function janusgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
   let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
-  samples = samples.map((sample: any) => ({
-    ...sample,
-    object: typeof sample.object === "string"
-      ? sample.object.replace(/^biolink:/, "")
-      : sample.object
-  }));
-
   const gremlinScript = `
 def out = []
 
 for (sample in samples) {
     out.addAll(
         g.V().has('id', sample.subject).as('subject')
-        .outE(sample.predicate).as('edge')
-        .inV().hasLabel(sample.object).as('object')
+        .outE(sample.predicate.replace('biolink:', '')).as('edge')
+        .inV().hasLabel(sample.object.replace('biolink:', '')).as('object')
         .select('subject', 'edge', 'object')
         .by(valueMap('id', 'name', 'category'))
         .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
@@ -832,7 +818,7 @@ return out
   const message = {
     gremlin: gremlinScript,
     bindings: {
-      nodes: samples
+      samples: samples
     }
   };
   return JSON.stringify(message);
@@ -863,7 +849,7 @@ return out
   const message = {
     gremlin: gremlinScript,
     bindings: {
-      nodes: samples
+      samples: samples
     }
   };
   return JSON.stringify(message);
@@ -886,8 +872,8 @@ def out = []
 for (sample in samples) {
     out.addAll(
         g.V().has('id', sample.object).as('object')
-        .inE(sample.predicate).as('edge')
-        .outV().hasLabel(sample.subject).as('subject')
+        .inE(sample.predicate.replace('biolink:', '')).as('edge')
+        .outV().hasLabel(sample.subject.replace('biolink:', '')).as('subject')
         .select('subject', 'edge', 'object')
         .by(valueMap('id', 'name', 'category'))
         .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
@@ -901,7 +887,7 @@ return out
   const message = {
     gremlin: gremlinScript,
     bindings: {
-      nodes: samples
+      samples: samples
     }
   };
   return JSON.stringify(message);
@@ -1067,9 +1053,9 @@ export function kuzudbFixedQuery(samplingDatabase: Database, sampleSize: number)
     const object = graphSample.object;
     const object_type = graphSample.object_type;
     const predicate = graphSample.predicate;
-    const query: string = `MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"}) 
-    - [\`e01\`:Edge {\`predicate\`: "${predicate}"}] 
-    - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"}) 
+    const query: string = `MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"})
+    - [\`e01\`:Edge {\`predicate\`: "${predicate}"}]
+    - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"})
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1089,9 +1075,9 @@ export function kuzudbFloatingObjectQuery(samplingDatabase: Database, sampleSize
     const object_type = graphSample.object_type;
     const predicate = graphSample.predicate;
     const query: string = `
-    MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"}) 
-    - [\`e01\`:Edge {\`predicate\`: "${predicate}"}] 
-    - (\`n1\`:Node {\`category\`: "${object_type}"}) 
+    MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"})
+    - [\`e01\`:Edge {\`predicate\`: "${predicate}"}]
+    - (\`n1\`:Node {\`category\`: "${object_type}"})
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1110,9 +1096,9 @@ export function kuzudbFloatingPredicateQuery(samplingDatabase: Database, sampleS
     const object_type = graphSample.object_type;
     const predicate = graphSample.predicate;
     const query: string = `
-    MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"}) 
-    - [\`e01\`:Edge {}] 
-    - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"}) 
+    MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"})
+    - [\`e01\`:Edge {}]
+    - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"})
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1131,9 +1117,9 @@ export function kuzudbFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
     const object_type = graphSample.object_type;
     const predicate = graphSample.predicate;
     const query: string = `
-    MATCH (\`n0\`:Node {\`category\`: "${subject_type}"}) 
-    - [\`e01\`:Edge {\`predicate\`: "${predicate}"}] 
-    - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"}) 
+    MATCH (\`n0\`:Node {\`category\`: "${subject_type}"})
+    - [\`e01\`:Edge {\`predicate\`: "${predicate}"}]
+    - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"})
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1150,9 +1136,9 @@ export function kuzudbTwoHopQuery(samplingDatabase: Database, databaseTable: str
     const node1 = graphSample.n1;
     const node2 = graphSample.n2;
     const query: string = `
-    MATCH 
-      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
-      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}) 
+    MATCH
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"})
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1170,10 +1156,10 @@ export function kuzudbThreeHopQuery(samplingDatabase: Database, databaseTable: s
     const node2 = graphSample.n2;
     const node3 = graphSample.n3;
     const query: string = `
-    MATCH 
-      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
-      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
-      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}) 
+    MATCH
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}),
+      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"})
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1192,11 +1178,11 @@ export function kuzudbFourHopQuery(samplingDatabase: Database, databaseTable: st
     const node3 = graphSample.n3;
     const node4 = graphSample.n4;
     const query: string = `
-    MATCH 
-      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
-      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
-      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}), 
-      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"}) 
+    MATCH
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}),
+      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}),
+      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"})
     RETURN *;`
     queryStatements.push(query);
   }
@@ -1216,12 +1202,12 @@ export function kuzudbFiveHopQuery(samplingDatabase: Database, databaseTable: st
     const node4 = graphSample.n4;
     const node5 = graphSample.n5;
     const query: string = `
-    MATCH 
-      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}), 
-      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}), 
-      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}), 
-      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"}), 
-      (\`n4\`:Node {\`id\`: "${node4}"}) - [\`e05\`:Edge {}] - (\`n5\`:Node {\`id\`: "${node5}"}) 
+    MATCH
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}),
+      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}),
+      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"}),
+      (\`n4\`:Node {\`id\`: "${node4}"}) - [\`e05\`:Edge {}] - (\`n5\`:Node {\`id\`: "${node5}"})
     RETURN *;`
     queryStatements.push(query);
   }
