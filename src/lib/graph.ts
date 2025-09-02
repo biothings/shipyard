@@ -444,18 +444,20 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
     const object: string = graphSample.object;
     const predicate: string = graphSample.predicate.replace("biolink:","");
     const query: string = `
-    lookup${index}
-    (func: eq(id, "${object}"))
-    {
+    node${index}
+    (func: eq(id, "${object}")) @cascade {
       id
       name
-      has_edge
-        @filter(eq(id, "${subject}"))
-        @facets(eq(predicate, "${predicate}"))
-        @facets(predicate: predicate) {
+      in_edges: ~source @filter(eq(predicate, "${predicate}")) {
+        predicate
+        primary_knowledge_source
+        knowledge_level
+        domain_range_exclusion
+        node: target @filter(eq(id, "${subject}")) {
           id
           name
         }
+      }
     }`;
     statements.push(query);
   });
@@ -475,38 +477,31 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: str
     const node1: string = graphSample.n1;
     const node2: string = graphSample.n2;
     const query: string = `
-    twohoplookup${index}(func: eq(id, "${node0}"), first: 1)
+    twohoplookup${index}(func: eq(id, "${node0}"))
     @cascade
     {
       id
       name
       category
 
-      has_edge
-        (first: 1)
-        @filter(
-          eq(id, "${node1}")
-        )
-        @facets(predicate: predicate)
-        {
+      in_edges: ~source {
+        predicate
+        target @filter(eq(id, "${node1}")) {
           id
           name
           category
 
-          has_edge
-            (first: 1)
-            @filter(
-              eq(id, "${node2}")
-            )
-            @facets(predicate: predicate)
-            {
+          in_edges: ~source {
+            predicate
+            target @filter(eq(id, "${node2}")) {
               id
               name
               category
             }
+          }
         }
+      }
     }`;
-
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -526,37 +521,42 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: s
     const node2: string = graphSample.n2;
     const node3: string = graphSample.n3;
     const query: string = `
-    threehoplookup${index}(func: eq(id, "${node0}")) {
+    threehoplookup${index}(func: eq(id, "${node0}"))
+    @cascade
+    {
       id
       name
       category
 
-      has_edge
-        (first: 1)
-        @filter(eq(id, "${node1}"))
-        @facets(predicate: predicate) {
-        id
-        name
-        category
+      # First hop: from node0 to node1
+      in_edges: ~source {
+        predicate
+        target @filter(eq(id, "${node1}")) {
+          id
+          name
+          category
 
-        has_edge
-          (first: 1)
-          @filter(eq(id, "${node2}"))
-          @facets(predicate: predicate) {
-            id
-            name
-            category
-
-          has_edge
-            (first: 1)
-            @filter(eq(id, "${node3}"))
-            @facets(predicate: predicate) {
+          # Second hop: from node1 to node2
+          in_edges: ~source {
+            predicate
+            target @filter(eq(id, "${node2}")) {
               id
               name
               category
+
+              # Third hop: from node2 to node3
+              in_edges: ~source {
+                predicate
+                target @filter(eq(id, "${node3}")) {
+                  id
+                  name
+                  category
+                }
+              }
             }
           }
         }
+      }
     }`;
     statements.push(query);
   });
@@ -578,47 +578,50 @@ export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: st
     const node3: string = graphSample.n3;
     const node4: string = graphSample.n4;
     const query: string = `
-    fourhoplookup${index}(func: eq(id, "${node0}")) {
+    fourhoplookup${index}(func: eq(id, "${node0}"))
+    @cascade
+    {
       id
       name
       category
 
-      has_edge
-        (first: 1)
-        @filter(eq(id, "${node1}"))
-        @facets(predicate: predicate) {
-        id
-        name
-        category
+      in_edges: ~source {
+        predicate
+        target @filter(eq(id, "${node1}")) {
+          id
+          name
+          category
 
-        has_edge
-          (first: 1)
-          @filter(eq(id, "${node2}"))
-          @facets(predicate: predicate) {
-            id
-            name
-            category
-
-          has_edge
-            (first: 1)
-            @filter(eq(id, "${node3}"))
-            @facets(predicate: predicate) {
+          in_edges: ~source {
+            predicate
+            target @filter(eq(id, "${node2}")) {
               id
               name
               category
 
-            has_edge
-              (first: 1)
-              @filter(eq(id, "${node4}"))
-              @facets(predicate: predicate) {
-                id
-                name
-                category
+              in_edges: ~source {
+                predicate
+                target @filter(eq(id, "${node3}")) {
+                  id
+                  name
+                  category
+
+                  in_edges: ~source {
+                    predicate
+                    target @filter(eq(id, "${node4}")) {
+                      id
+                      name
+                      category
+                    }
+                  }
+                }
               }
             }
           }
         }
+      }
     }`;
+
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -640,55 +643,57 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
     const node4: string = graphSample.n4;
     const node5: string = graphSample.n5;
     const query: string = `
-    fivehoplookup${index}(func: eq(id, "${node0}")) {
+    fivehoplookup${index}(func: eq(id, "${node0}"))
+    @cascade
+    {
       id
       name
       category
 
-      has_edge
-        (first: 1)
-        @filter(eq(id, "${node1}"))
-        @facets(predicate: predicate) {
-        id
-        name
-        category
+      in_edges: ~source {
+        predicate
+        target @filter(eq(id, "${node1}")) {
+          id
+          name
+          category
 
-        has_edge
-          (first: 1)
-          @filter(eq(id, "${node2}"))
-          @facets(predicate: predicate) {
-            id
-            name
-            category
-
-          has_edge
-            (first: 1)
-            @filter(eq(id, "${node3}"))
-            @facets(predicate: predicate) {
+          in_edges: ~source {
+            predicate
+            target @filter(eq(id, "${node2}")) {
               id
               name
               category
 
-            has_edge
-              (first: 1)
-              @filter(eq(id, "${node4}"))
-              @facets(predicate: predicate) {
-                id
-                name
-                category
-
-              has_edge
-                (first: 1)
-                @filter(eq(id, "${node5}"))
-                @facets(predicate: predicate) {
+              in_edges: ~source {
+                predicate
+                target @filter(eq(id, "${node3}")) {
                   id
                   name
                   category
+
+                  in_edges: ~source {
+                    predicate
+                    target @filter(eq(id, "${node4}")) {
+                      id
+                      name
+                      category
+
+                      in_edges: ~source {
+                        predicate
+                        target @filter(eq(id, "${node5}")) {
+                          id
+                          name
+                          category
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
           }
         }
+      }
     }`;
     statements.push(query);
   });
@@ -709,20 +714,18 @@ export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
     lookup${index}(func: eq(id, "${subject}")) {
-      ~has_edge (first:100) 
-      @facets(eq(predicate, "${predicate}")) 
-      {
-        id 
-        name 
-        category 
-        @filter(eq(category, "${object_type}"))
-        @facets(predicate: predicate) 
-        {
-          id 
-          name
-        }
+      id
+      name
+      out_edges: ~target @filter(eq(predicate, "${predicate}")) {
+          predicate
+          source {
+            id
+            name
+            category
+            @filter(eq(category, "${object_type}"))
+          }
       }
-    }`
+    }`;
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -740,16 +743,21 @@ export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleS
     const subject: string = graph_sample.subject;
     const object: string = graph_sample.object;
     const query: string = `
-    lookup${index}(func: eq(id, "${object}")) {
-      id 
-      name 
-      has_edge @filter(eq(id, "${subject}")) 
-      @facets(predicate: predicate) 
-      {
-        id 
-        name
+    node${index}
+    (func: eq(id, "${object}")) @cascade {
+      id
+      name
+      in_edges: ~source {
+        predicate
+        primary_knowledge_source
+        knowledge_level
+        domain_range_exclusion
+        node: target @filter(eq(id, "${subject}")) {
+          id
+          name
+        }
       }
-    }`
+    }`;
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -768,18 +776,23 @@ export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
     const subject_type: string = graph_sample.subject_type;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
-    lookup${index}(func: eq(id, "${object}")) {
-      id 
-      name 
-      has_edge 
-      @filter(eq(category, "${subject_type}"))
-      @facets(eq(predicate, "${predicate}")) 
-      @facets(predicate: predicate) 
-      {
-        id
-        name
+    node${index}(func: eq(id, "${object}")) @cascade {
+      id
+      name
+      category
+      in_edges: ~source @filter(eq(predicate, "${predicate}")) {
+        predicate
+        primary_knowledge_source
+        knowledge_level
+        domain_range_exclusion
+        node: target @filter(eq(category, "${subject_type}")) {
+          id
+          name
+          category
+        }
       }
-    }`
+    }`;
+
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
