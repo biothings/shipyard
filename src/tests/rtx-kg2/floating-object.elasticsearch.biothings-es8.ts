@@ -5,7 +5,9 @@ const { main } = allModules("object");
 export * from "./floating-es-meta/esFloatingMetaQuery.ts";
 export default main;
 
-
 export function handleSummary(data) {
-  return { "/testoutput/floating-object.elasticsearch.biothings-es8.ts.json": JSON.stringify(data) };
+  return {
+    "/testoutput/floating-object.elasticsearch.biothings-es8.ts.json":
+      JSON.stringify(data),
+  };
 }

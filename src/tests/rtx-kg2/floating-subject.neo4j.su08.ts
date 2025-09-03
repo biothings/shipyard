@@ -3,6 +3,7 @@ import http from "k6/http";
 import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
+import { textSummary } from "https://jslib.k6.io/k6-summary/0.1.0/index.js";
 
 import { neo4jFloatingSubjectQuery } from "../../lib/graph.ts";
 import { EnvConfiguration } from "../../configuration/environment.ts";
@@ -52,5 +53,6 @@ export default function (data: Object) {
 export function handleSummary(data) {
   return {
     "/testoutput/floating-subject.neo4j.su08.ts.json": JSON.stringify(data),
+    stdout: textSummary(data, { indent: "→", enableColors: true }),
   };
 }

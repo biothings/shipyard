@@ -11,14 +11,14 @@ const graphDB = sql.open(driver, "/src/data/graph_sample.db");
 export const options = {
   scenarios: {
     full_load: {
-      executor: 'shared-iterations',
-      startTime: '0m',
-      gracefulStop: '30s',
-      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '300s'},
+      executor: "shared-iterations",
+      startTime: "0m",
+      gracefulStop: "30s",
+      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "300s" },
       vus: 5,
       iterations: 25,
-      maxDuration: '10m',
-    }
+      maxDuration: "10m",
+    },
   },
 };
 
@@ -37,14 +37,18 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  const payload: string = janusgraphFloatingPredicateQuery(graphDB, __ENV.NUM_SAMPLE);
-  const url: string = EnvConfiguration["JANUSGRAPH_QUERY_URL"]
+  const payload: string = janusgraphFloatingPredicateQuery(
+    graphDB,
+    __ENV.NUM_SAMPLE,
+  );
+  const url: string = EnvConfiguration["JANUSGRAPH_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }
 
 export function handleSummary(data) {
   return {
-    "/testoutput/floating-predicate.janusgraph.su08.ts.json": JSON.stringify(data),
+    "/testoutput/floating-predicate.janusgraph.su08.ts.json":
+      JSON.stringify(data),
   };
 }

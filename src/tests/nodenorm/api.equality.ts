@@ -1,10 +1,11 @@
-import { check } from 'k6';
+import { check } from "k6";
 import http from "k6/http";
 import sql from "k6/x/sql";
-import exec from 'k6/execution';
-import { Counter } from 'k6/metrics';
+import exec from "k6/execution";
+import { Counter } from "k6/metrics";
 
 import driver from "k6/x/sql/driver/sqlite3";
+import { textSummary } from "https://jslib.k6.io/k6-summary/0.1.0/index.js";
 
 import { curieSamples } from "../../lib/sampling.ts";
 import { EnvConfiguration } from "../../configuration/environment.ts";
@@ -14,7 +15,7 @@ const curieDB = sql.open(driver, "/src/data/nodenorm_curie.db");
 const unexpectedResponseDifference = new Counter("different_response_counter");
 
 export const options = {
-  thresholds: {checks: ['rate==1.00']},
+  thresholds: { checks: ["rate==1.00"] },
   scenarios: {
     base_api_comparison: {
       executor: "shared-iterations",
@@ -70,24 +71,43 @@ export default function (data: Object) {
 
   data.params.timeout = __ENV.HTTP_TIMEOUT;
 
-  const renciNodenormURL: string = EnvConfiguration["NODENORM_QUERY_URL"]["renci"];
-  const renciResponse = http.post(renciNodenormURL, JSON.stringify(renciBody), data.params);
+  const renciNodenormURL: string =
+    EnvConfiguration["NODENORM_QUERY_URL"]["renci"];
+  const renciResponse = http.post(
+    renciNodenormURL,
+    JSON.stringify(renciBody),
+    data.params,
+  );
 
-  const pendingNodenormURL: string = EnvConfiguration["NODENORM_QUERY_URL"]["ci"];
-  const pendingResponse = http.post(pendingNodenormURL, JSON.stringify(pendingBody), data.params);
+  const pendingNodenormURL: string =
+    EnvConfiguration["NODENORM_QUERY_URL"]["ci"];
+  const pendingResponse = http.post(
+    pendingNodenormURL,
+    JSON.stringify(pendingBody),
+    data.params,
+  );
 
   let resultComparison: boolean = renciResponse.body == pendingResponse.body;
-  console.log(`Iteration ${exec.instance.iterationsCompleted} | Comparison Result: ${resultComparison}`);
+  console.log(
+    `Iteration ${exec.instance.iterationsCompleted} | Comparison Result: ${resultComparison}`,
+  );
 
   if (!resultComparison) {
-    unexpectedResponseDifference.add(1, {renci: renciResponse.body.toString(), pending: pendingResponse.body.toString()});
+    unexpectedResponseDifference.add(1, {
+      renci: renciResponse.body.toString(),
+      pending: pendingResponse.body.toString(),
+    });
   }
 
   check(pendingResponse, {
-    "API Response Equality": (pendingResponse) => pendingResponse.body === renciResponse.body
+    "API Response Equality": (pendingResponse) =>
+      pendingResponse.body === renciResponse.body,
   });
 }
 
 export function handleSummary(data) {
-  return { "/testoutput/nodenorm.api.equality.ts.json": JSON.stringify(data) };
+  return {
+    "/testoutput/nodenorm.api.equality.ts.json": JSON.stringify(data),
+    stdout: textSummary(data, { indent: "→", enableColors: true }),
+  };
 }
