@@ -19,7 +19,7 @@ export const options = {
       env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "300s" },
       vus: 5,
       iterations: 25,
-      maxDuration: "10m",
+      maxDuration: "25m",
     },
   },
 };
