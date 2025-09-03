@@ -2,16 +2,16 @@ import encoding from "k6/encoding";
 import http from "k6/http";
 import sql from "k6/x/sql";
 
-import { Trend } from 'k6/metrics';
+import { Trend } from "k6/metrics";
 import driver from "k6/x/sql/driver/sqlite3";
-import { textSummary } from 'https://jslib.k6.io/k6-summary/0.1.0/index.js';
+import { textSummary } from "https://jslib.k6.io/k6-summary/0.1.0/index.js";
 
 import { neo4jFloatingObjectQuery } from "../../lib/graph.ts";
 import { EnvConfiguration } from "../../configuration/environment.ts";
 
 const graphDB = sql.open(driver, "/src/data/graph_sample.db");
 
-const respSizeTrend = new Trend('http_resp');
+const respSizeTrend = new Trend("http_resp");
 
 export const options = {
   scenarios: {
@@ -57,6 +57,6 @@ export default function (data: Object) {
 export function handleSummary(data) {
   return {
     "/testoutput/floating-object.neo4j.su08.ts.json": JSON.stringify(data),
-    "stdout": textSummary(data, { indent:"→", enableColors: true }),
+    stdout: textSummary(data, { indent: "→", enableColors: true }),
   };
 }
