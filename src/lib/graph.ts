@@ -1056,7 +1056,9 @@ export function kuzudbFixedQuery(samplingDatabase: Database, sampleSize: number)
     const query: string = `MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"})
     - [\`e01\`:Edge {\`predicate\`: "${predicate}"}]
     - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"})
-    RETURN *;`
+    RETURN n0.id, n0.name, n0.category,
+           n1.id, n1.name, n1.category,
+           e01.predicate, e01.primary_knowledge_source;`
     queryStatements.push(query);
   }
   const payload = JSON.stringify(queryStatements);
@@ -1078,7 +1080,9 @@ export function kuzudbFloatingObjectQuery(samplingDatabase: Database, sampleSize
     MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"})
     - [\`e01\`:Edge {\`predicate\`: "${predicate}"}]
     - (\`n1\`:Node {\`category\`: "${object_type}"})
-    RETURN *;`
+    RETURN n0.id, n0.name, n0.category,
+           n1.id, n1.name, n1.category,
+           e01.predicate, e01.primary_knowledge_source;`
     queryStatements.push(query);
   }
   const payload = JSON.stringify(queryStatements);
@@ -1099,7 +1103,9 @@ export function kuzudbFloatingPredicateQuery(samplingDatabase: Database, sampleS
     MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"})
     - [\`e01\`:Edge {}]
     - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"})
-    RETURN *;`
+    RETURN n0.id, n0.name, n0.category,
+           n1.id, n1.name, n1.category,
+           e01.predicate, e01.primary_knowledge_source;`
     queryStatements.push(query);
   }
   const payload = JSON.stringify(queryStatements);
@@ -1120,7 +1126,9 @@ export function kuzudbFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
     MATCH (\`n0\`:Node {\`category\`: "${subject_type}"})
     - [\`e01\`:Edge {\`predicate\`: "${predicate}"}]
     - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"})
-    RETURN *;`
+    RETURN n0.id, n0.name, n0.category,
+           n1.id, n1.name, n1.category,
+           e01.predicate, e01.primary_knowledge_source;`
     queryStatements.push(query);
   }
   const payload = JSON.stringify(queryStatements);
@@ -1139,7 +1147,11 @@ export function kuzudbTwoHopQuery(samplingDatabase: Database, databaseTable: str
     MATCH
       (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
       (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"})
-    RETURN *;`
+    RETURN n0.id, n0.name, n0.category,
+           n1.id, n1.name, n1.category,
+           n2.id, n2.name, n2.category,
+           e01.predicate, e01.primary_knowledge_source,
+           e02.predicate, e02.primary_knowledge_source;`
     queryStatements.push(query);
   }
   const payload = JSON.stringify(queryStatements);
@@ -1160,7 +1172,13 @@ export function kuzudbThreeHopQuery(samplingDatabase: Database, databaseTable: s
       (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
       (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}),
       (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"})
-    RETURN *;`
+    RETURN n0.id, n0.name, n0.category,
+           n1.id, n1.name, n1.category,
+           n2.id, n2.name, n2.category,
+           n3.id, n3.name, n3.category,
+           e01.predicate, e01.primary_knowledge_source,
+           e02.predicate, e02.primary_knowledge_source,
+           e03.predicate, e03.primary_knowledge_source;`
     queryStatements.push(query);
   }
   const payload = JSON.stringify(queryStatements);
@@ -1183,7 +1201,15 @@ export function kuzudbFourHopQuery(samplingDatabase: Database, databaseTable: st
       (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}),
       (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}),
       (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"})
-    RETURN *;`
+    RETURN n0.id, n0.name, n0.category,
+           n1.id, n1.name, n1.category,
+           n2.id, n2.name, n2.category,
+           n3.id, n3.name, n3.category,
+           n4.id, n4.name, n4.category,
+           e01.predicate, e01.primary_knowledge_source,
+           e02.predicate, e02.primary_knowledge_source,
+           e03.predicate, e03.primary_knowledge_source,
+           e04.predicate, e04.primary_knowledge_source;`
     queryStatements.push(query);
   }
   const payload = JSON.stringify(queryStatements);
@@ -1208,7 +1234,17 @@ export function kuzudbFiveHopQuery(samplingDatabase: Database, databaseTable: st
       (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}),
       (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"}),
       (\`n4\`:Node {\`id\`: "${node4}"}) - [\`e05\`:Edge {}] - (\`n5\`:Node {\`id\`: "${node5}"})
-    RETURN *;`
+    RETURN n0.id, n0.name, n0.category,
+           n1.id, n1.name, n1.category,
+           n2.id, n2.name, n2.category,
+           n3.id, n3.name, n3.category,
+           n4.id, n4.name, n4.category,
+           n5.id, n5.name, n5.category,
+           e01.predicate, e01.primary_knowledge_source,
+           e02.predicate, e02.primary_knowledge_source,
+           e03.predicate, e03.primary_knowledge_source,
+           e04.predicate, e04.primary_knowledge_source,
+           e05.predicate, e05.primary_knowledge_source;`
     queryStatements.push(query);
   }
   const payload = JSON.stringify(queryStatements);
