@@ -14,7 +14,7 @@ export function multihopSamples(samplingDatabase: Database, databaseTable: strin
 }
 
 export function curieSamples(samplingDatabase: Database, sampleSize: number) {
-  const sampleQuery: string = "SELECT * FROM nodenorm_curie WHERE rowid IN (SELECT rowid FROM nodenorm_curie ORDER BY random() LIMIT $1)";
+  const sampleQuery: string = "SELECT * FROM nodenorm_curie WHERE rowid > (ABS(RANDOM()) % (SELECT max(rowid) FROM nodenorm_curie)) LIMIT $1;";
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
 
   let curies: Array<string> = [];
