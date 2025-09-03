@@ -3,23 +3,22 @@ import sql from "k6/x/sql";
 
 import driver from "k6/x/sql/driver/sqlite3";
 
-import { kuzudbFloatingObjectQuery } from '../../lib/graph.ts';
-import { EnvConfiguration } from '../../configuration/environment.ts';
+import { kuzudbFloatingObjectQuery } from "../../lib/graph.ts";
+import { EnvConfiguration } from "../../configuration/environment.ts";
 
 const graphDB = sql.open(driver, "/src/data/graph_sample.db");
-
 
 export const options = {
   scenarios: {
     full_load: {
-      executor: 'shared-iterations',
-      startTime: '0m',
-      gracefulStop: '30s',
-      env: { NUM_SAMPLE: '1000', HTTP_TIMEOUT: '300s'},
+      executor: "shared-iterations",
+      startTime: "0m",
+      gracefulStop: "30s",
+      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "300s" },
       vus: 5,
       iterations: 25,
-      maxDuration: '10m',
-    }
+      maxDuration: "10m",
+    },
   },
 };
 
@@ -33,7 +32,6 @@ export function setup() {
   return { params: params };
 }
 
-
 export function teardown() {
   graphDB.close();
 }
@@ -46,5 +44,7 @@ export default function (data: Object) {
 }
 
 export function handleSummary(data) {
-  return { "/testoutput/floating-object.kuzudb.su08.ts.json": JSON.stringify(data) };
+  return {
+    "/testoutput/floating-object.kuzudb.su08.ts.json": JSON.stringify(data),
+  };
 }
