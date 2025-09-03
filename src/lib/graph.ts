@@ -445,14 +445,13 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
     const predicate: string = graphSample.predicate.replace("biolink:","");
     const query: string = `
     node${index}
-    (func: eq(id, "${object}")) @cascade {
+    (func: eq(id, "${object}"))
+    @cascade {
       id
       name
       in_edges: ~source @filter(eq(predicate, "${predicate}")) {
         predicate
         primary_knowledge_source
-        knowledge_level
-        domain_range_exclusion
         node: target @filter(eq(id, "${subject}")) {
           id
           name
@@ -477,15 +476,16 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: str
     const node1: string = graphSample.n1;
     const node2: string = graphSample.n2;
     const query: string = `
-    twohoplookup${index}(func: eq(id, "${node0}"))
-    @cascade
-    {
+    twohoplookup${index}
+    (func: eq(id, "${node0}"))
+    @cascade {
       id
       name
       category
 
       in_edges: ~source {
         predicate
+        primary_knowledge_source
         target @filter(eq(id, "${node1}")) {
           id
           name
@@ -493,6 +493,7 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: str
 
           in_edges: ~source {
             predicate
+            primary_knowledge_source
             target @filter(eq(id, "${node2}")) {
               id
               name
@@ -521,9 +522,9 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: s
     const node2: string = graphSample.n2;
     const node3: string = graphSample.n3;
     const query: string = `
-    threehoplookup${index}(func: eq(id, "${node0}"))
-    @cascade
-    {
+    threehoplookup${index}
+    (func: eq(id, "${node0}"))
+    @cascade {
       id
       name
       category
@@ -531,6 +532,7 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: s
       # First hop: from node0 to node1
       in_edges: ~source {
         predicate
+        primary_knowledge_source
         target @filter(eq(id, "${node1}")) {
           id
           name
@@ -539,6 +541,7 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: s
           # Second hop: from node1 to node2
           in_edges: ~source {
             predicate
+            primary_knowledge_source
             target @filter(eq(id, "${node2}")) {
               id
               name
@@ -547,6 +550,7 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: s
               # Third hop: from node2 to node3
               in_edges: ~source {
                 predicate
+                primary_knowledge_source
                 target @filter(eq(id, "${node3}")) {
                   id
                   name
@@ -578,15 +582,16 @@ export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: st
     const node3: string = graphSample.n3;
     const node4: string = graphSample.n4;
     const query: string = `
-    fourhoplookup${index}(func: eq(id, "${node0}"))
-    @cascade
-    {
+    fourhoplookup${index}
+    (func: eq(id, "${node0}"))
+    @cascade {
       id
       name
       category
 
       in_edges: ~source {
         predicate
+        primary_knowledge_source
         target @filter(eq(id, "${node1}")) {
           id
           name
@@ -594,6 +599,7 @@ export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: st
 
           in_edges: ~source {
             predicate
+            primary_knowledge_source
             target @filter(eq(id, "${node2}")) {
               id
               name
@@ -601,6 +607,7 @@ export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: st
 
               in_edges: ~source {
                 predicate
+                primary_knowledge_source
                 target @filter(eq(id, "${node3}")) {
                   id
                   name
@@ -608,6 +615,7 @@ export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: st
 
                   in_edges: ~source {
                     predicate
+                    primary_knowledge_source
                     target @filter(eq(id, "${node4}")) {
                       id
                       name
@@ -643,15 +651,16 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
     const node4: string = graphSample.n4;
     const node5: string = graphSample.n5;
     const query: string = `
-    fivehoplookup${index}(func: eq(id, "${node0}"))
-    @cascade
-    {
+    fivehoplookup${index}
+    (func: eq(id, "${node0}"))
+    @cascade {
       id
       name
       category
 
       in_edges: ~source {
         predicate
+        primary_knowledge_source
         target @filter(eq(id, "${node1}")) {
           id
           name
@@ -659,6 +668,7 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
 
           in_edges: ~source {
             predicate
+            primary_knowledge_source
             target @filter(eq(id, "${node2}")) {
               id
               name
@@ -666,6 +676,7 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
 
               in_edges: ~source {
                 predicate
+                primary_knowledge_source
                 target @filter(eq(id, "${node3}")) {
                   id
                   name
@@ -673,6 +684,7 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
 
                   in_edges: ~source {
                     predicate
+                    primary_knowledge_source
                     target @filter(eq(id, "${node4}")) {
                       id
                       name
@@ -680,6 +692,7 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
 
                       in_edges: ~source {
                         predicate
+                        primary_knowledge_source
                         target @filter(eq(id, "${node5}")) {
                           id
                           name
@@ -713,48 +726,19 @@ export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize
     const object_type: string = graph_sample.object_type;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
-    lookup${index}(func: eq(id, "${subject}")) {
-      id
-      name
-      out_edges: ~target @filter(eq(predicate, "${predicate}")) {
-          predicate
-          source {
-            id
-            name
-            category
-            @filter(eq(category, "${object_type}"))
-          }
-      }
-    }`;
-    statements.push(query);
-  });
-  const payload: string = "{" + statements.join("") + "}";
-
-  const encoder: TextEncoder = new TextEncoder();
-  const encodedPayload: Uint8Array = encoder.encode(payload);
-  return encodedPayload;
-}
-
-
-export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
-  const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
-  const statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const subject: string = graph_sample.subject;
-    const object: string = graph_sample.object;
-    const query: string = `
     node${index}
-    (func: eq(id, "${object}")) @cascade {
+    (func: eq(id, "${subject}"))
+    @cascade {
       id
       name
-      in_edges: ~source {
+      category
+      in_edges: ~source @filter(eq(predicate, "${predicate}")) {
         predicate
         primary_knowledge_source
-        knowledge_level
-        domain_range_exclusion
-        node: target @filter(eq(id, "${subject}")) {
+        node: target @filter(eq(category, "${object_type}")) {
           id
           name
+          category
         }
       }
     }`;
@@ -776,23 +760,55 @@ export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
     const subject_type: string = graph_sample.subject_type;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
-    node${index}(func: eq(id, "${object}")) @cascade {
+    lookup${index}
+    (func: eq(id, "${object}"))
+    @cascade {
       id
       name
       category
-      in_edges: ~source @filter(eq(predicate, "${predicate}")) {
+      out_edges: ~target @filter(eq(predicate, "${predicate}")) {
+          predicate
+          primary_knowledge_source
+          node: source @filter(eq(category, "${subject_type}")) {
+            id
+            name
+            category
+        }
+      }
+    }`;
+    statements.push(query);
+  });
+  const payload: string = "{" + statements.join("") + "}";
+
+  const encoder: TextEncoder = new TextEncoder();
+  const encodedPayload: Uint8Array = encoder.encode(payload);
+  return encodedPayload;
+}
+
+
+export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+  const statements: Array<string> = [];
+  samples.forEach( (graph_sample, index) => {
+    const subject: string = graph_sample.subject;
+    const object: string = graph_sample.object;
+    const query: string = `
+    node${index}
+    (func: eq(id, "${object}"))
+    @cascade {
+      id
+      name
+      category
+      in_edges: ~source {
         predicate
         primary_knowledge_source
-        knowledge_level
-        domain_range_exclusion
-        node: target @filter(eq(category, "${subject_type}")) {
+        node: target @filter(eq(id, "${subject}")) {
           id
           name
           category
         }
       }
     }`;
-
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
