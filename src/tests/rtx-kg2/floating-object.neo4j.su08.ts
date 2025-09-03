@@ -46,7 +46,7 @@ export function teardown() {
   graphDB.close();
 }
 
-export default function () {
+export default function (data: Object) {
   const payload: string = neo4jFloatingObjectQuery(graphDB, __ENV.NUM_SAMPLE);
   const url: string = EnvConfiguration["NEO4J_QUERY_URL"];
   data.params.timeout = __ENV.HTTP_TIMEOUT;

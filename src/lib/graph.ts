@@ -96,19 +96,19 @@ export const generateEsFloatingQuerier =
     return aggregated_statements.join("\n") + "\n";
   };
 
-function getTermsAgainstNodesAdjacencyList(graph_sample: Row) {
+function getTermsAgainstNodesAdjacencyList(graphSample: Row) {
   return [
-    { term: { _id: graph_sample.subject } },
+    { term: { _id: graphSample.subject } },
     {
       nested: {
         path: "out_edges",
         query: {
           bool: {
             filter: [
-              { term: { "out_edges.object.keyword": graph_sample.object } },
+              { term: { "out_edges.object.keyword": graphSample.object } },
               {
                 term: {
-                  "out_edges.predicate.keyword": graph_sample.predicate,
+                  "out_edges.predicate.keyword": graphSample.predicate,
                 },
               },
             ],
@@ -120,11 +120,11 @@ function getTermsAgainstNodesAdjacencyList(graph_sample: Row) {
   ];
 }
 
-function getTermsAgainstEdges(graph_sample: Row) {
+function getTermsAgainstEdges(graphSample: Row) {
   return [
-    { term: { "subject.keyword": graph_sample.subject } },
-    { term: { "object.keyword": graph_sample.object } },
-    { term: { "predicate.keyword": graph_sample.predicate } },
+    { term: { "subject.keyword": graphSample.subject } },
+    { term: { "object.keyword": graphSample.object } },
+    { term: { "predicate.keyword": graphSample.predicate } },
   ];
 }
 
@@ -142,7 +142,7 @@ export function esFixedQuery(
       ? getTermsAgainstNodesAdjacencyList
       : getTermsAgainstEdges;
 
-  const aggregatedStatements = samples.flatMap((graph_sample) => [
+  const aggregatedStatements = samples.flatMap((graphSample) => [
     query_header,
     JSON.stringify({
       _source:
@@ -151,7 +151,7 @@ export function esFixedQuery(
           : true,
       query: {
         bool: {
-          filter: term_get_function(graph_sample),
+          filter: term_get_function(graphSample),
         },
       },
     }),
@@ -248,18 +248,19 @@ export function neo4jFloatingSubjectQuery(samplingDatabase: Database, sampleSize
 }
 
 
-export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number) {
-  let payloadStructure: object = {
-    message: {
-      query_graph: {
-        edges: {},
-        nodes: {},
-      },
-    },
-  };
-
+export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number, ploverEndpoint: string, parameters: Object) {
+  let requests: Array<object> = [];
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
   samples.forEach( (graphSample, index) => {
+      let payload: object = {
+        message: {
+          query_graph: {
+            edges: {},
+            nodes: {},
+          },
+        },
+      };
+
       const edge_label: string = `e${ index }`;
       const node_label_subject: string = `n0-${ edge_label }`;
       const node_label_object: string = `n1-${ edge_label }`;
@@ -279,27 +280,35 @@ export function ploverFixedQuery(samplingDatabase: Database, sampleSize: number)
         ids: [graphSample.object],
         categories: [graphSample.object_type],
       };
-      payloadStructure.message.query_graph.edges[edge_label] = edge;
-      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
-      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+
+      payload.message.query_graph.edges[edge_label] = edge;
+      payload.message.query_graph.nodes[node_label_subject] = subject_node;
+      payload.message.query_graph.nodes[node_label_object] = object_node;
+      requests.push(
+        {
+          method: 'POST',
+          url: ploverEndpoint,
+          body: JSON.stringify(payload),
+          params: parameters
+        }
+      );
   });
 
-  const payload: string = JSON.stringify(payloadStructure);
-  return payload;
+  return requests;
 }
 
-export function ploverFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
-  let payloadStructure: object = {
-    message: {
-      query_graph: {
-        edges: {},
-        nodes: {},
-      }
-    }
-  };
-
+export function ploverFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number, ploverEndpoint: string, parameters: Object) {
+  let requests: Array<object> = [];
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
   samples.forEach( (graphSample, index) => {
+      let payload: object = {
+        message: {
+          query_graph: {
+            edges: {},
+            nodes: {},
+          }
+        }
+      };
       const edge_label: string = `e${ index }`;
       const node_label_subject: string = `n0-${ edge_label }`;
       const node_label_object: string = `n1-${ edge_label }`;
@@ -318,28 +327,34 @@ export function ploverFloatingPredicateQuery(samplingDatabase: Database, sampleS
         ids: [graphSample.object],
         categories: [graphSample.object_type],
       };
-      payloadStructure.message.query_graph.edges[edge_label] = edge;
-      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
-      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+      payload.message.query_graph.edges[edge_label] = edge;
+      payload.message.query_graph.nodes[node_label_subject] = subject_node;
+      payload.message.query_graph.nodes[node_label_object] = object_node;
+      requests.push(
+        {
+          method: 'POST',
+          url: ploverEndpoint,
+          body: JSON.stringify(payload),
+          params: parameters
+        }
+      );
   });
-
-  const payload: string = JSON.stringify(payloadStructure);
-  return payload;
+  return requests;
 }
 
 
-export function ploverFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
-  let payloadStructure: object = {
-    message: {
-      query_graph: {
-        edges: {},
-        nodes: {},
-      }
-    }
-  };
-
+export function ploverFloatingObjectQuery(samplingDatabase: Database, sampleSize: number, ploverEndpoint: string, parameters: Object) {
+  let requests: Array<object> = [];
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
   samples.forEach( (graphSample, index) => {
+      let payload: object = {
+        message: {
+          query_graph: {
+            edges: {},
+            nodes: {},
+          }
+        }
+      };
       const edge_label: string = `e${ index }`;
       const node_label_subject: string = `n0-${ edge_label }`;
       const node_label_object: string = `n1-${ edge_label }`;
@@ -358,28 +373,34 @@ export function ploverFloatingObjectQuery(samplingDatabase: Database, sampleSize
       const object_node: object = {
         categories: [graphSample.object_type],
       };
-      payloadStructure.message.query_graph.edges[edge_label] = edge;
-      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
-      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+      payload.message.query_graph.edges[edge_label] = edge;
+      payload.message.query_graph.nodes[node_label_subject] = subject_node;
+      payload.message.query_graph.nodes[node_label_object] = object_node;
+      requests.push(
+        {
+          method: 'POST',
+          url: ploverEndpoint,
+          body: JSON.stringify(payload),
+          params: parameters
+        }
+      );
   });
-
-  const payload: string = JSON.stringify(payloadStructure);
-  return payload;
+  return requests;
 }
 
 
-export function ploverFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
-  let payloadStructure: object = {
-    message: {
-      query_graph: {
-        edges: {},
-        nodes: {},
-      }
-    }
-  };
-
+export function ploverFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number, ploverEndpoint: string, parameters: Object) {
+  let requests: Array<object> = [];
   const samples: Array<{object}> = graphSamples(samplingDatabase, sampleSize);
   samples.forEach( (graphSample, index) => {
+      let payload: object = {
+        message: {
+          query_graph: {
+            edges: {},
+            nodes: {},
+          }
+        }
+      };
       const edge_label: string = `e${ index }`;
       const node_label_subject: string = `n0-${ edge_label }`;
       const node_label_object: string = `n1-${ edge_label }`;
@@ -398,13 +419,19 @@ export function ploverFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
         ids: [graphSample.object],
         categories: [graphSample.object_type],
       };
-      payloadStructure.message.query_graph.edges[edge_label] = edge;
-      payloadStructure.message.query_graph.nodes[node_label_subject] = subject_node;
-      payloadStructure.message.query_graph.nodes[node_label_object] = object_node;
+      payload.message.query_graph.edges[edge_label] = edge;
+      payload.message.query_graph.nodes[node_label_subject] = subject_node;
+      payload.message.query_graph.nodes[node_label_object] = object_node;
+      requests.push(
+        {
+          method: 'POST',
+          url: ploverEndpoint,
+          body: JSON.stringify(payload),
+          params: parameters
+        }
+      );
   });
-
-  const payload: string = JSON.stringify(payloadStructure);
-  return payload;
+  return requests;
 }
 
 
@@ -412,10 +439,10 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
   let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
   let statements: Array<string> = [];
-  samples.forEach((graph_sample, index) => {
-    const subject: string = graph_sample.subject;
-    const object: string = graph_sample.object;
-    const predicate: string = graph_sample.predicate.replace("biolink:","");
+  samples.forEach((graphSample, index) => {
+    const subject: string = graphSample.subject;
+    const object: string = graphSample.object;
+    const predicate: string = graphSample.predicate.replace("biolink:","");
     const query: string = `
     lookup${index}(func: eq(id, "${object}"))
     {
@@ -442,10 +469,10 @@ export function dgraphTwoHopQuery(samplingDatabase: Database, databaseTable: str
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   let statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const node0: string = graph_sample.n0;
-    const node1: string = graph_sample.n1;
-    const node2: string = graph_sample.n2;
+  samples.forEach( (graphSample, index) => {
+    const node0: string = graphSample.n0;
+    const node1: string = graphSample.n1;
+    const node2: string = graphSample.n2;
     const query: string = `
     twohoplookup${index}(func: eq(id, "${node0}"), first: 1)
     @cascade
@@ -492,11 +519,11 @@ export function dgraphThreeHopQuery(samplingDatabase: Database, databaseTable: s
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   let statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const node0: string = graph_sample.n0;
-    const node1: string = graph_sample.n1;
-    const node2: string = graph_sample.n2;
-    const node3: string = graph_sample.n3;
+  samples.forEach( (graphSample, index) => {
+    const node0: string = graphSample.n0;
+    const node1: string = graphSample.n1;
+    const node2: string = graphSample.n2;
+    const node3: string = graphSample.n3;
     const query: string = `
     threehoplookup${index}(func: eq(id, "${node0}")) {
       id
@@ -543,12 +570,12 @@ export function dgraphFourHopQuery(samplingDatabase: Database, databaseTable: st
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   let statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const node0: string = graph_sample.n0;
-    const node1: string = graph_sample.n1;
-    const node2: string = graph_sample.n2;
-    const node3: string = graph_sample.n3;
-    const node4: string = graph_sample.n4;
+  samples.forEach( (graphSample, index) => {
+    const node0: string = graphSample.n0;
+    const node1: string = graphSample.n1;
+    const node2: string = graphSample.n2;
+    const node3: string = graphSample.n3;
+    const node4: string = graphSample.n4;
     const query: string = `
     fourhoplookup${index}(func: eq(id, "${node0}")) {
       id
@@ -604,13 +631,13 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
 
   let statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const node0: string = graph_sample.n0;
-    const node1: string = graph_sample.n1;
-    const node2: string = graph_sample.n2;
-    const node3: string = graph_sample.n3;
-    const node4: string = graph_sample.n4;
-    const node5: string = graph_sample.n5;
+  samples.forEach( (graphSample, index) => {
+    const node0: string = graphSample.n0;
+    const node1: string = graphSample.n1;
+    const node2: string = graphSample.n2;
+    const node3: string = graphSample.n3;
+    const node4: string = graphSample.n4;
+    const node5: string = graphSample.n5;
     const query: string = `
     fivehoplookup${index}(func: eq(id, "${node0}")) {
       id
@@ -675,10 +702,26 @@ export function dgraphFiveHopQuery(samplingDatabase: Database, databaseTable: st
 export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
   const statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const subject: string = graph_sample.subject;
-    const predicate: string = graph_sample.predicate.replace("biolink:","");
-    const query: string = `lookup${index}(func: eq(id, "${subject}")) {~has_edge (first:100) @facets(eq(predicate, "${predicate}")) {id name category @facets(predicate: predicate) {id name}}}`
+  samples.forEach( (graphSample, index) => {
+    const subject: string = graphSample.subject;
+    const predicate: string = graphSample.predicate.replace("biolink:","");
+    const query: string = `
+    lookup${index}(
+      func: eq(id, "${subject}"))
+      {
+        ~has_edge (first:100)
+        @facets(eq(predicate, "${predicate}"))
+        {
+          id
+          name
+          category
+          @facets(predicate: predicate)
+          {
+            id
+            name
+          }
+        }
+      }`
     statements.push(query);
   });
   const payload: string = "{" + statements.join("") + "}";
@@ -692,9 +735,9 @@ export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize
 export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
   const statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    const subject: string = graph_sample.subject;
-    const object: string = graph_sample.object;
+  samples.forEach( (graphSample, index) => {
+    const subject: string = graphSample.subject;
+    const object: string = graphSample.object;
     const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @filter(eq(id, "${subject}")) @facets(predicate: predicate) {id name}}`
     statements.push(query);
   });
@@ -709,10 +752,10 @@ export function dgraphFloatingPredicateQuery(samplingDatabase: Database, sampleS
 export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
   const samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
   const statements: Array<string> = [];
-  samples.forEach( (graph_sample, index) => {
-    // const subject: string = graph_sample.subject;
-    const object: string = graph_sample.object;
-    const predicate: string = graph_sample.predicate.replace("biolink:","");
+  samples.forEach( (graphSample, index) => {
+    // const subject: string = graphSample.subject;
+    const object: string = graphSample.object;
+    const predicate: string = graphSample.predicate.replace("biolink:","");
     const query: string = `lookup${index}(func: eq(id, "${object}")) {id name has_edge @facets(eq(predicate, "${predicate}")) @facets(predicate: predicate) {id name}}`
     statements.push(query);
   });
@@ -727,19 +770,131 @@ export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
 export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
   let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
-  let union_clauses: Array<string> = [];
-  samples.forEach( graph_sample => {
-    const subject: string = graph_sample.subject;
-    const object: string = graph_sample.object;
-    const predicate: string = graph_sample.predicate.replace("biolink:","");
-    const unionClause: string = `__.V().has('id', '${subject}').outE('${predicate}').where(__.inV().has('id', '${object}'))`;
-    union_clauses.push(unionClause);
-  });
-  const unionChain: string = union_clauses.join(", ");
-  const gremlinQuery: string = `g.union(${unionChain}).project('edge_label', 'edge_properties', 'from_vertex_label', 'from_vertex_properties', 'to_vertex_label', 'to_vertex_properties').by(label()).by(valueMap()).by(outV().label()).by(outV().valueMap()).by(inV().label()).by(inV().valueMap())`
-  const message: object = { "gremlin": gremlinQuery }
+  const gremlinScript = `
+def out = []
+for (sample in samples) {
+  out.addAll(
+    g.V().has('id', sample.subject).as(sample.subject)
+        .outE(sample.predicate.replace('biolink:', '')).as('edge')
+        .inV().has('id', sample.object).limit(1).as(sample.object)
+        .project('subject', 'edges', 'object')
+        .by(select(sample.subject).by(valueMap('id', 'name', 'category')))
+        .by(select(sample.subject).outE(sample.predicate.replace('biolink:', '')).where(inV().has('id', sample.object)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+        .by(select(sample.object).by(valueMap('id', 'name', 'category')))
+  )
+}
+return out
+`;
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      samples: samples
+    }
+  };
   return JSON.stringify(message);
 }
+
+export function janusgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+
+  const gremlinScript = `
+def out = []
+
+for (sample in samples) {
+    out.addAll(
+        g.V().has('id', sample.subject).as('subject')
+        .outE(sample.predicate.replace('biolink:', '')).as('edge')
+        .inV().hasLabel(sample.object_type.replace('biolink:', '')).as('object')
+        .select('subject', 'edge', 'object')
+        .by(valueMap('id', 'name', 'category'))
+        .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+        .by(valueMap('id', 'name', 'category'))
+    )
+}
+
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      samples: samples
+    }
+  };
+  return JSON.stringify(message);
+
+}
+
+export function janusgraphFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+
+  const gremlinScript = `
+def out = []
+
+for (sample in samples) {
+    out.addAll(
+        g.V().has('id', sample.subject).as('subject')
+        .outE().as('edge')
+        .inV().has('id', sample.object).as('object')
+        .select('subject', 'edge', 'object')
+        .by(valueMap('id', 'name', 'category'))
+        .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+        .by(valueMap('id', 'name', 'category'))
+    )
+}
+
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      samples: samples
+    }
+  };
+  return JSON.stringify(message);
+
+}
+
+export function janusgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
+  let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
+
+  samples = samples.map((sample: any) => ({
+    ...sample,
+    subject: typeof sample.subject === "string"
+      ? sample.subject.replace(/^biolink:/, "")
+      : sample.subject
+  }));
+
+  const gremlinScript = `
+def out = []
+
+for (sample in samples) {
+    out.addAll(
+        g.V().has('id', sample.object).as('object')
+        .inE(sample.predicate.replace('biolink:', '')).as('edge')
+        .outV().hasLabel(sample.subject_type.replace('biolink:', '')).as('subject')
+        .select('subject', 'edge', 'object')
+        .by(valueMap('id', 'name', 'category'))
+        .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+        .by(valueMap('id', 'name', 'category'))
+    )
+}
+
+return out
+`;
+
+  const message = {
+    gremlin: gremlinScript,
+    bindings: {
+      samples: samples
+    }
+  };
+  return JSON.stringify(message);
+
+}
+
+
 
 export function janusgraphTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
   let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
@@ -753,12 +908,12 @@ for (n in nodes) {
             .outE().as('e1').inV().has('id', n.n2).limit(1).as(n.n2)
             .project('nodes', 'edges')
             .by(select(n.n0, n.n1, n.n2)
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
-            .by(select('e0', 'e1')
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category')))
+            .by(project('all_e0', 'all_e1')
+                .by(select(n.n0).outE().where(inV().has('id', n.n1)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n1).outE().where(inV().has('id', n.n2)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold()))
     )
 }
 return out
@@ -787,14 +942,14 @@ for (n in nodes) {
             .outE().as('e2').inV().has('id', n.n3).limit(1).as(n.n3)
             .project('nodes', 'edges')
             .by(select(n.n0, n.n1, n.n2, n.n3)
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
-            .by(select('e0', 'e1', 'e2')
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category')))
+            .by(project('all_e0', 'all_e1', 'all_e2')
+                .by(select(n.n0).outE().where(inV().has('id', n.n1)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n1).outE().where(inV().has('id', n.n2)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n2).outE().where(inV().has('id', n.n3)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold()))
     )
 }
 return out
@@ -823,16 +978,16 @@ for (n in nodes) {
             .outE().as('e3').inV().has('id', n.n4).limit(1).as(n.n4)
             .project('nodes', 'edges')
             .by(select(n.n0, n.n1, n.n2, n.n3, n.n4)
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
-            .by(select('e0', 'e1', 'e2', 'e3')
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category')))
+            .by(project('all_e0', 'all_e1', 'all_e2', 'all_e3')
+                .by(select(n.n0).outE().where(inV().has('id', n.n1)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n1).outE().where(inV().has('id', n.n2)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n2).outE().where(inV().has('id', n.n3)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n3).outE().where(inV().has('id', n.n4)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold()))
     )
 }
 return out
@@ -862,18 +1017,18 @@ for (n in nodes) {
             .outE().as('e4').inV().has('id', n.n5).limit(1).as(n.n5)
             .project('nodes', 'edges')
             .by(select(n.n0, n.n1, n.n2, n.n3, n.n4, n.n5)
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap()))
-                .by(project('vertex_label','vertex_properties').by(label()).by(valueMap())))
-            .by(select('e0', 'e1', 'e2', 'e3', 'e4')
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap()))
-                .by(project('edge_label','edge_properties').by(label()).by(valueMap())))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category')))
+            .by(project('all_e0', 'all_e1', 'all_e2', 'all_e3', 'all_e4')
+                .by(select(n.n0).outE().where(inV().has('id', n.n1)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n1).outE().where(inV().has('id', n.n2)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n2).outE().where(inV().has('id', n.n3)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n3).outE().where(inV().has('id', n.n4)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
+                .by(select(n.n4).outE().where(inV().has('id', n.n5)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold()))
     )
 }
 return out
@@ -886,4 +1041,176 @@ return out
     }
   };
   return JSON.stringify(message);
+}
+
+export function kuzudbFixedQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize);
+
+  const queryStatements: Array<string> = [];
+  for (const graphSample of samples) {
+    const subject = graphSample.subject;
+    const subject_type = graphSample.subject_type;
+    const object = graphSample.object;
+    const object_type = graphSample.object_type;
+    const predicate = graphSample.predicate;
+    const query: string = `MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"})
+    - [\`e01\`:Edge {\`predicate\`: "${predicate}"}]
+    - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"})
+    RETURN *;`
+    queryStatements.push(query);
+  }
+  const payload = JSON.stringify(queryStatements);
+  return payload;
+}
+
+
+export function kuzudbFloatingObjectQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize);
+
+  const queryStatements: Array<string> = [];
+  for (const graphSample of samples) {
+    const subject = graphSample.subject;
+    const subject_type = graphSample.subject_type;
+    const object = graphSample.object;
+    const object_type = graphSample.object_type;
+    const predicate = graphSample.predicate;
+    const query: string = `
+    MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"})
+    - [\`e01\`:Edge {\`predicate\`: "${predicate}"}]
+    - (\`n1\`:Node {\`category\`: "${object_type}"})
+    RETURN *;`
+    queryStatements.push(query);
+  }
+  const payload = JSON.stringify(queryStatements);
+  return payload;
+}
+
+export function kuzudbFloatingPredicateQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize);
+
+  const queryStatements: Array<string> = [];
+  for (const graphSample of samples) {
+    const subject = graphSample.subject;
+    const subject_type = graphSample.subject_type;
+    const object = graphSample.object;
+    const object_type = graphSample.object_type;
+    const predicate = graphSample.predicate;
+    const query: string = `
+    MATCH (\`n0\`:Node {\`id\`: "${subject}", \`category\`: "${subject_type}"})
+    - [\`e01\`:Edge {}]
+    - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"})
+    RETURN *;`
+    queryStatements.push(query);
+  }
+  const payload = JSON.stringify(queryStatements);
+  return payload;
+}
+
+export function kuzudbFloatingSubjectQuery(samplingDatabase: Database, sampleSize: number) {
+  const samples: Array<Row> = graphSamples(samplingDatabase, sampleSize);
+
+  const queryStatements: Array<string> = [];
+  for (const graphSample of samples) {
+    const subject = graphSample.subject;
+    const subject_type = graphSample.subject_type;
+    const object = graphSample.object;
+    const object_type = graphSample.object_type;
+    const predicate = graphSample.predicate;
+    const query: string = `
+    MATCH (\`n0\`:Node {\`category\`: "${subject_type}"})
+    - [\`e01\`:Edge {\`predicate\`: "${predicate}"}]
+    - (\`n1\`:Node {\`id\`: "${object}", \`category\`: "${object_type}"})
+    RETURN *;`
+    queryStatements.push(query);
+  }
+  const payload = JSON.stringify(queryStatements);
+  return payload;
+}
+
+export function kuzudbTwoHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number, ) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  const queryStatements: Array<string> = [];
+  for (const graphSample of samples) {
+    const node0 = graphSample.n0;
+    const node1 = graphSample.n1;
+    const node2 = graphSample.n2;
+    const query: string = `
+    MATCH
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"})
+    RETURN *;`
+    queryStatements.push(query);
+  }
+  const payload = JSON.stringify(queryStatements);
+  return payload;
+}
+
+export function kuzudbThreeHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  const queryStatements: Array<string> = [];
+  for (const graphSample of samples) {
+    const node0 = graphSample.n0;
+    const node1 = graphSample.n1;
+    const node2 = graphSample.n2;
+    const node3 = graphSample.n3;
+    const query: string = `
+    MATCH
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}),
+      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"})
+    RETURN *;`
+    queryStatements.push(query);
+  }
+  const payload = JSON.stringify(queryStatements);
+  return payload;
+}
+
+export function kuzudbFourHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number,) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  const queryStatements: Array<string> = [];
+  for (const graphSample of samples) {
+    const node0 = graphSample.n0;
+    const node1 = graphSample.n1;
+    const node2 = graphSample.n2;
+    const node3 = graphSample.n3;
+    const node4 = graphSample.n4;
+    const query: string = `
+    MATCH
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}),
+      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}),
+      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"})
+    RETURN *;`
+    queryStatements.push(query);
+  }
+  const payload = JSON.stringify(queryStatements);
+  return payload;
+}
+
+export function kuzudbFiveHopQuery(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number,) {
+  let samples: Array<Object> = multihopSamples(samplingDatabase, databaseTable, sampleSize, depthSize);
+
+  const queryStatements: Array<string> = [];
+  for (const graphSample of samples) {
+    const node0 = graphSample.n0;
+    const node1 = graphSample.n1;
+    const node2 = graphSample.n2;
+    const node3 = graphSample.n3;
+    const node4 = graphSample.n4;
+    const node5 = graphSample.n5;
+    const query: string = `
+    MATCH
+      (\`n0\`:Node {\`id\`: "${node0}"}) - [\`e01\`:Edge {}] - (\`n1\`:Node {\`id\`: "${node1}"}),
+      (\`n1\`:Node {\`id\`: "${node1}"}) - [\`e02\`:Edge {}] - (\`n2\`:Node {\`id\`: "${node2}"}),
+      (\`n2\`:Node {\`id\`: "${node2}"}) - [\`e03\`:Edge {}] - (\`n3\`:Node {\`id\`: "${node3}"}),
+      (\`n3\`:Node {\`id\`: "${node3}"}) - [\`e04\`:Edge {}] - (\`n4\`:Node {\`id\`: "${node4}"}),
+      (\`n4\`:Node {\`id\`: "${node4}"}) - [\`e05\`:Edge {}] - (\`n5\`:Node {\`id\`: "${node5}"})
+    RETURN *;`
+    queryStatements.push(query);
+  }
+  const payload = JSON.stringify(queryStatements);
+  return payload;
 }
