@@ -449,12 +449,14 @@ export function dgraphFixedQuery(samplingDatabase: Database, sampleSize: number)
     @cascade {
       id
       name
+      category
       in_edges: ~source @filter(eq(predicate, "${predicate}")) {
         predicate
         primary_knowledge_source
         node: target @filter(eq(id, "${subject}")) {
           id
           name
+          category
         }
       }
     }`;
@@ -727,7 +729,7 @@ export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
     node${index}
-    (func: eq(id, "${subject}"))
+    (func: eq(category, "${object_type}"))
     @cascade {
       id
       name
@@ -735,7 +737,7 @@ export function dgraphFloatingObjectQuery(samplingDatabase: Database, sampleSize
       in_edges: ~source @filter(eq(predicate, "${predicate}")) {
         predicate
         primary_knowledge_source
-        node: target @filter(eq(category, "${object_type}")) {
+        node: target @filter(eq(id, "${subject}")) {
           id
           name
           category
@@ -760,16 +762,16 @@ export function dgraphFloatingSubjectQuery(samplingDatabase: Database, sampleSiz
     const subject_type: string = graph_sample.subject_type;
     const predicate: string = graph_sample.predicate.replace("biolink:","");
     const query: string = `
-    lookup${index}
+    node${index}
     (func: eq(id, "${object}"))
     @cascade {
       id
       name
       category
-      out_edges: ~target @filter(eq(predicate, "${predicate}")) {
+      in_edges: ~source @filter(eq(predicate, "${predicate}")) {
           predicate
           primary_knowledge_source
-          node: source @filter(eq(category, "${subject_type}")) {
+          node: target @filter(eq(category, "${subject_type}")) {
             id
             name
             category
