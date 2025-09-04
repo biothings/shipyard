@@ -807,7 +807,7 @@ for (sample in samples) {
         .by(valueMap('id', 'name', 'category'))
         .by(
             __.outE(sample.predicate.replace('biolink:', '')).as('edge')
-            .inV().hasLabel(sample.object.replace('biolink:', '')).as('object')
+            .inV().hasLabel(sample.object_type.replace('biolink:', '')).as('object')
             .project('edge', 'object')
                 .by(select('edge').project('edge_label', 'primary_knowledge_source')
                     .by(label())
@@ -882,7 +882,7 @@ for (sample in samples) {
         .by(valueMap('id', 'name', 'category'))
         .by(
             __.inE(sample.predicate.replace('biolink:', '')).as('edge')
-            .outV().hasLabel(sample.subject.replace('biolink:', '')).as('subject')
+            .outV().hasLabel(sample.subject_type.replace('biolink:', '')).as('subject')
             .project('edge', 'subject')
             .by(select('edge').project('edge_label', 'primary_knowledge_source')
                 .by(label())
