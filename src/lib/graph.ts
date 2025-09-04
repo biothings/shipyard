@@ -841,11 +841,13 @@ for (sample in samples) {
     out.addAll(
         g.V().has('id', sample.subject).as('subject')
         .outE().as('edge')
-        .inV().has('id', sample.object).as('object')
-        .select('subject', 'edge', 'object')
-        .by(valueMap('id', 'name', 'category'))
-        .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
-        .by(valueMap('id', 'name', 'category'))
+        .inV().has('id', sample.object).limit(1).as('object')
+        .project('nodes', 'edges')
+            .by(select('subject', 'object')
+                .by(valueMap('id', 'name', 'category'))
+                .by(valueMap('id', 'name', 'category')))
+        .by(project('edges')
+            .by(select('subject').outE().where(inV().has('id', sample.object)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold()))
     )
 }
 
