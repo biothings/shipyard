@@ -802,13 +802,19 @@ def out = []
 
 for (sample in samples) {
     out.addAll(
-        g.V().has('id', sample.subject).as('subject')
-        .outE(sample.predicate.replace('biolink:', '')).as('edge')
-        .inV().hasLabel(sample.object_type.replace('biolink:', '')).as('object')
-        .select('subject', 'edge', 'object')
+        g.V().has('id', sample.subject).limit(1).as('subject')
+        .project('subject', 'pairs')
         .by(valueMap('id', 'name', 'category'))
-        .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
-        .by(valueMap('id', 'name', 'category'))
+        .by(
+            __.outE(sample.predicate.replace('biolink:', '')).as('edge')
+            .inV().hasLabel(sample.object.replace('biolink:', '')).as('object')
+            .project('edge', 'object')
+                .by(select('edge').project('edge_label', 'primary_knowledge_source')
+                    .by(label())
+                    .by(values('primary_knowledge_source')))
+                .by(valueMap('id', 'name', 'category')).fold()
+        )
+        .toList()
     )
 }
 
@@ -871,13 +877,18 @@ def out = []
 
 for (sample in samples) {
     out.addAll(
-        g.V().has('id', sample.object).as('object')
-        .inE(sample.predicate.replace('biolink:', '')).as('edge')
-        .outV().hasLabel(sample.subject_type.replace('biolink:', '')).as('subject')
-        .select('subject', 'edge', 'object')
+        g.V().has('id', sample.object).limit(1).as('object')
+        .project('object', 'pairs')
         .by(valueMap('id', 'name', 'category'))
-        .by(project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
-        .by(valueMap('id', 'name', 'category'))
+        .by(
+            __.inE(sample.predicate.replace('biolink:', '')).as('edge')
+            .outV().hasLabel(sample.subject.replace('biolink:', '')).as('subject')
+            .project('edge', 'subject')
+            .by(select('edge').project('edge_label', 'primary_knowledge_source')
+                .by(label())
+                .by(values('primary_knowledge_source')))
+            .by(valueMap('id', 'name', 'category')).fold()
+        )
     )
 }
 
