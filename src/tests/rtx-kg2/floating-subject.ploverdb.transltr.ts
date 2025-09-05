@@ -15,7 +15,7 @@ export const options = {
       executor: "shared-iterations",
       startTime: "0s",
       gracefulStop: "30s",
-      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "60s" },
+      env: { NUM_SAMPLE: "1000", HTTP_TIMEOUT: "180s" },
       vus: 5,
       iterations: 50,
       maxDuration: "20m",
