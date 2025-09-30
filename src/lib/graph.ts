@@ -14,16 +14,16 @@ function prepareFloatingQueryTermsForAdjList(
   const edgeDestin = edgeOrigin === "subject" ? "object" : "subject";
   const edgeClass = floatingField === "subject" ? "in_edges" : "out_edges";
 
-  const innerFilter = [];
+  let innerFilter;
 
   if (floatingField === "predicate") {
-    innerFilter.push({
-      term: { [`${edgeClass}.object.keyword`]: sample[edgeDestin] },
-    });
+    innerFilter = {
+      term: { [`${edgeClass}.${edgeDestin}.keyword`]: sample[edgeDestin] },
+    };
   } else {
-    innerFilter.push({
+    innerFilter = {
       term: { [`${edgeClass}.predicate.keyword`]: sample.predicate },
-    });
+    };
   }
 
   const filter = [
@@ -32,17 +32,28 @@ function prepareFloatingQueryTermsForAdjList(
       nested: {
         path: [edgeClass],
         query: {
-          bool: {
-            filter: innerFilter,
-          },
+          ...innerFilter,
         },
-        inner_hits: { size: 1 },
+        inner_hits: { size: 10 },
       },
     },
   ];
 
+  console.log(
+    JSON.stringify({
+      // _source: { excludes: ["in_edges", "out_edges"] },
+      _source: false,
+      query: {
+        bool: {
+          filter,
+        },
+      },
+    }),
+  );
+
   return JSON.stringify({
-    _source: { excludes: ["in_edges", "out_edges"] },
+    // _source: { excludes: ["in_edges", "out_edges"] },
+    _source: false,
     query: {
       bool: {
         filter,
@@ -366,20 +377,22 @@ export function dgraphFixedQuery(
   return encodedPayload;
 }
 
-export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: number) {
-  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize)
+export function janusgraphFixedQuery(
+  samplingDatabase: Database,
+  sampleSize: number,
+) {
+  let samples: Array<Object> = graph_samples(samplingDatabase, sampleSize);
 
   let union_clauses: Array<string> = [];
-  samples.forEach( graph_sample => {
+  samples.forEach((graph_sample) => {
     const subject: string = graph_sample.subject;
     const object: string = graph_sample.object;
-    const predicate: string = graph_sample.predicate.replace("biolink:","");
+    const predicate: string = graph_sample.predicate.replace("biolink:", "");
     const unionClause: string = `__.V().has('id', '${subject}').outE('${predicate}').where(__.inV().has('id', '${object}'))`;
     union_clauses.push(unionClause);
   });
   const unionChain: string = union_clauses.join(", ");
-  const gremlinQuery: string = `g.union(${unionChain}).project('edge_label', 'edge_properties', 'from_vertex_label', 'from_vertex_properties', 'to_vertex_label', 'to_vertex_properties').by(label()).by(valueMap()).by(outV().label()).by(outV().valueMap()).by(inV().label()).by(inV().valueMap())`
-  const message: object = { "gremlin": gremlinQuery }
+  const gremlinQuery: string = `g.union(${unionChain}).project('edge_label', 'edge_properties', 'from_vertex_label', 'from_vertex_properties', 'to_vertex_label', 'to_vertex_properties').by(label()).by(valueMap()).by(outV().label()).by(outV().valueMap()).by(inV().label()).by(inV().valueMap())`;
+  const message: object = { gremlin: gremlinQuery };
   return JSON.stringify(message);
 }
-
