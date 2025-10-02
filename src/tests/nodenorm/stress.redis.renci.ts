@@ -4,7 +4,7 @@ import sql from "k6/x/sql";
 import driver from "k6/x/sql/driver/sqlite3";
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.1.0/index.js";
 
-import { nodenormRedisQuery } from "../../lib/curie.ts";
+import { nodenormQuery } from "../../lib/curie.ts";
 import { EnvConfiguration } from "../../configuration/environment.ts";
 
 const curie_db = sql.open(driver, "/src/data/nodenorm_curie.db");
@@ -39,7 +39,7 @@ export function teardown() {
 
 export default function (data: Object) {
   const url: string = EnvConfiguration["NODENORM_QUERY_URL"]["renci"];
-  const payload: string = nodenormRedisQuery(curie_db, __ENV.NUM_SAMPLE);
+  const payload: string = nodenormQuery(curie_db, __ENV.NUM_SAMPLE);
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.post(url, payload, data.params);
 }

@@ -55,14 +55,7 @@ export function teardown() {
 export default function (data: Object) {
   let curies: Array<Object> = curieSamples(curieDB, __ENV.NUM_SAMPLE);
 
-  let pendingBody: Object = {
-    curie: curies,
-    conflate: JSON.parse(__ENV.CONFLATION.toLowerCase()),
-    description: false,
-    drug_chemical_conflate: JSON.parse(__ENV.CONFLATION.toLowerCase()),
-  };
-
-  let renciBody: Object = {
+  let requestBody: Object = {
     curies: curies,
     conflate: JSON.parse(__ENV.CONFLATION.toLowerCase()),
     description: false,
@@ -75,7 +68,7 @@ export default function (data: Object) {
     EnvConfiguration["NODENORM_QUERY_URL"]["renci"];
   const renciResponse = http.post(
     renciNodenormURL,
-    JSON.stringify(renciBody),
+    JSON.stringify(requestBody),
     data.params,
   );
 
@@ -83,7 +76,7 @@ export default function (data: Object) {
     EnvConfiguration["NODENORM_QUERY_URL"]["ci"];
   const pendingResponse = http.post(
     pendingNodenormURL,
-    JSON.stringify(pendingBody),
+    JSON.stringify(requestBody),
     data.params,
   );
 

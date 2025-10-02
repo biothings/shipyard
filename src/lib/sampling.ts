@@ -1,20 +1,26 @@
-import {Database, Row} from "k6/x/sql";
-
+import { Database, Row } from "k6/x/sql";
 
 export function graphSamples(samplingDatabase: Database, sampleSize: number) {
-  const sampleQuery: string = "SELECT * FROM graph_sample WHERE rowid IN (SELECT rowid FROM graph_sample ORDER BY random() LIMIT $1)";
+  const sampleQuery: string =
+    "SELECT * FROM graph_sample WHERE rowid IN (SELECT rowid FROM graph_sample ORDER BY random() LIMIT $1)";
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
   return samples;
 }
 
-export function multihopSamples(samplingDatabase: Database, databaseTable: string, sampleSize: number, depthSize: number) {
+export function multihopSamples(
+  samplingDatabase: Database,
+  databaseTable: string,
+  sampleSize: number,
+  depthSize: number,
+) {
   const sampleQuery: string = `SELECT * FROM ${databaseTable} WHERE rowid IN (SELECT rowid FROM ${databaseTable} WHERE depth > ${depthSize} ORDER BY random() LIMIT $1)`;
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
   return samples;
 }
 
 export function curieSamples(samplingDatabase: Database, sampleSize: number) {
-  const sampleQuery: string = "SELECT * FROM nodenorm_curie WHERE rowid > (ABS(RANDOM()) % (SELECT max(rowid) FROM nodenorm_curie)) LIMIT $1;";
+  const sampleQuery: string =
+    "SELECT * FROM nodenorm_curie WHERE rowid > (ABS(RANDOM()) % (SELECT max(rowid) FROM nodenorm_curie)) LIMIT $1;";
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
 
   let curies: Array<string> = [];
@@ -25,7 +31,8 @@ export function curieSamples(samplingDatabase: Database, sampleSize: number) {
 }
 
 export function trafficCuries(samplingDatabase: Database, sampleSize: number) {
-  const sampleQuery: string = "SELECT json_array(curies) FROM curie_traffic WHERE rowid in (SELECT rowid FROM curie_traffic ORDER BY random() LIMIT $1)";
+  const sampleQuery: string =
+    "SELECT json_array(curies) FROM curie_traffic WHERE rowid in (SELECT rowid FROM curie_traffic ORDER BY random() LIMIT $1)";
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
 
   let curies: Array<string> = [];
@@ -35,13 +42,17 @@ export function trafficCuries(samplingDatabase: Database, sampleSize: number) {
   return curies;
 }
 
-export function trafficCurieSizes(samplingDatabase: Database, sampleSize: number) {
-  const sampleQuery: string = "SELECT curie_count FROM curie_traffic WHERE rowid in (SELECT rowid FROM curie_traffic ORDER BY random() LIMIT $1)";
+export function trafficCurieSizes(
+  samplingDatabase: Database,
+  sampleSize: number,
+) {
+  const sampleQuery: string =
+    "SELECT curie_count FROM curie_traffic WHERE rowid in (SELECT rowid FROM curie_traffic ORDER BY random() LIMIT $1)";
   const samples: Array<Row> = samplingDatabase.query(sampleQuery, sampleSize);
 
   let curieCounts: Array<number> = [];
   for (let sample of samples) {
-    curieCounts.push(sample.curie_count)
+    curieCounts.push(sample.curie_count);
   }
   return curieCounts;
 }

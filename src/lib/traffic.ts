@@ -1,7 +1,13 @@
-export function curieTrafficHistogram(curies: number[]): { bins: number[][], probabilities: number[] } {
+export function curieTrafficHistogram(curies: number[]): {
+  bins: number[][];
+  probabilities: number[];
+} {
   const minimumCuries = 1;
   const maximumCuries = 3000;
-  const bins: number[][] = [[1, 10], [10, 300]];
+  const bins: number[][] = [
+    [1, 10],
+    [10, 300],
+  ];
 
   // Hard-coding the bucket distributions based off the kind of queries we want based off some
   // initial analysis of the nodenorm traffic
@@ -17,7 +23,7 @@ export function curieTrafficHistogram(curies: number[]): { bins: number[][], pro
 
   const probabilities: number[] = [];
   let cumulative: number = 0;
-  for (const bin of bins) { 
+  for (const bin of bins) {
     let count: number = 0;
     for (const curie of curies) {
       if (bin[0] <= curie && curie < bin[1]) {
@@ -25,18 +31,17 @@ export function curieTrafficHistogram(curies: number[]): { bins: number[][], pro
       }
     }
     probabilities.push(count / curies.length);
-    cumulative += (count / curies.length);
+    cumulative += count / curies.length;
   }
 
-  probabilities.push(1 - cumulative)
-  bins.push([maximumCuries / 3, maximumCuries])
+  probabilities.push(1 - cumulative);
+  bins.push([maximumCuries / 3, maximumCuries]);
 
   return { bins, probabilities };
 }
 
-
 export function sampleCurieTrafficValue(curies: number[]): number {
-  const {bins, probabilities} = curieTrafficHistogram(curies);
+  const { bins, probabilities } = curieTrafficHistogram(curies);
 
   let cumulative = 0;
   const cumulativeProbabilities: number[] = [];
