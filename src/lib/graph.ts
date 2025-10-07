@@ -825,19 +825,17 @@ export function janusgraphFixedQuery(samplingDatabase: Database, sampleSize: num
   let samples: Array<Object> = graphSamples(samplingDatabase, sampleSize)
 
   const gremlinScript = `
-def out = []
-for (sample in samples) {
-  out.addAll(
-    g.V().has('id', sample.subject).as(sample.subject)
-        .outE(sample.predicate.replace('biolink:', '')).as('edge')
-        .inV().has('id', sample.object).limit(1).as(sample.object)
-        .project('subject', 'edges', 'object')
-        .by(select(sample.subject).by(valueMap('id', 'name', 'category')))
-        .by(select(sample.subject).outE(sample.predicate.replace('biolink:', '')).where(inV().has('id', sample.object)).project('edge_label', 'primary_knowledge_source').by(label()).by(values('primary_knowledge_source')).fold())
-        .by(select(sample.object).by(valueMap('id', 'name', 'category')))
-  )
-}
-return out
+g.inject(samples).unfold().flatMap { sample ->
+    def s = sample.get()
+    g.V().has('id', s.subject).as('subject')
+    .project('subject', 'edges', 'object')
+    .by(valueMap('id', 'name', 'category'))
+    .by(__.outE(s.predicate.replace('biolink:', ''))
+        .where(inV().has('id', s.object))
+        .project('edge_label', 'primary_knowledge_source')
+        .by(label()).by(values('primary_knowledge_source')).fold())
+    .by(__.V().has('id', s.object).valueMap('id', 'name', 'category'))
+}.toList()
 `;
   const message = {
     gremlin: gremlinScript,
