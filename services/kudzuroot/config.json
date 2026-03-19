@@ -1,0 +1,7 @@
+{
+    "database": "/home/schaffjr/workspace/ncats/kudzuroot/database/kuzu/rtx_kg2",
+    "sample_database": "/home/schaffjr/workspace/ncats/gharvest/harvest/graph_sample.db",
+    "edge_file": "/home/schaffjr/workspace/ncats/kudzuroot/data/",
+    "node_file": "/home/schaffjr/workspace/ncats/kudzuroot/data/",
+    "sample_size": 1000
+}
