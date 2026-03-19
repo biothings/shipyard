@@ -94,7 +94,7 @@ export default function (data: Object) {
 
   check(pendingResponse, {
     "API Response Equality": (pendingResponse) =>
-      pendingResponse.body === renciResponse.body,
+      pendingResponse.body == renciResponse.body,
   });
 }
 

@@ -6,7 +6,7 @@ export function nodenormQuery(samplingDatabase: Database, sampleSize: number) {
 
   let nodenormBody: Object = {
     curies: curies,
-    conflate: false,
+    conflate: true,
     description: false,
     drug_chemical_conflate: false,
   };
