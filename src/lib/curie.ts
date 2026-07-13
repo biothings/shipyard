@@ -2,7 +2,11 @@ import { curieSamples } from "./sampling.ts";
 import { Database, Row } from "k6/x/sql";
 
 export function nodenormQuery(samplingDatabase: Database, sampleSize: number) {
-  let curies: Array<Object> = curieSamples(samplingDatabase, sampleSize);
+  let curies: Array<Object> = curieSamples(
+    samplingDatabase,
+    "nodenorm_curie",
+    sampleSize,
+  );
 
   let nodenormBody: Object = {
     curies: curies,

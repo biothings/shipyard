@@ -53,7 +53,11 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  let curies: Array<Object> = curieSamples(curieDB, __ENV.NUM_SAMPLE);
+  let curies: Array<Object> = curieSamples(
+    curieDB,
+    "nodenorm_curie",
+    __ENV.NUM_SAMPLE,
+  );
 
   let requestBody: Object = {
     curies: curies,
