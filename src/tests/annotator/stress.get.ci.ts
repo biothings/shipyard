@@ -40,8 +40,12 @@ export function teardown() {
 export default function (data: Object) {
   const url: string = EnvConfiguration["ANNOTATOR_QUERY_URL"]["ci"];
   const curie: string = annotatorSingleCurie(curie_db);
+  const queryBackend: string = __ENV.QUERY_BACKEND || "es";
   data.params.timeout = __ENV.HTTP_TIMEOUT;
-  http.get(`${url}/curie/${encodeURIComponent(curie)}`, data.params);
+  http.get(
+    `${url}/curie/${encodeURIComponent(curie)}?query_backend=${encodeURIComponent(queryBackend)}`,
+    data.params,
+  );
 }
 
 export function handleSummary(data) {

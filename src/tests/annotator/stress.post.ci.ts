@@ -40,8 +40,13 @@ export function teardown() {
 export default function (data: Object) {
   const url: string = EnvConfiguration["ANNOTATOR_QUERY_URL"]["ci"];
   const payload: string = annotatorCurieBatchBody(curie_db, __ENV.NUM_SAMPLE);
+  const queryBackend: string = __ENV.QUERY_BACKEND || "es";
   data.params.timeout = __ENV.HTTP_TIMEOUT;
-  http.post(`${url}/curie`, payload, data.params);
+  http.post(
+    `${url}/curie?query_backend=${encodeURIComponent(queryBackend)}`,
+    payload,
+    data.params,
+  );
 }
 
 export function handleSummary(data) {
