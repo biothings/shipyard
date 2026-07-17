@@ -10,6 +10,24 @@ import { EnvConfiguration } from "../../configuration/environment.ts";
 const curie_db = sql.open(driver, "/src/data/annotator_curie.db");
 
 export const options = {
+  // 'url' is intentionally omitted: it holds the raw, per-curie request URL,
+  // which blows up metric cardinality. 'name' (see http.url below) is the
+  // low-cardinality substitute.
+  systemTags: [
+    "proto",
+    "subproto",
+    "status",
+    "method",
+    "name",
+    "group",
+    "check",
+    "error",
+    "error_code",
+    "tls_version",
+    "scenario",
+    "service",
+    "expected_response",
+  ],
   scenarios: {
     full_load: {
       executor: "shared-iterations",
@@ -43,7 +61,7 @@ export default function (data: Object) {
   const queryBackend: string = __ENV.QUERY_BACKEND || "es";
   data.params.timeout = __ENV.HTTP_TIMEOUT;
   http.get(
-    `${url}/curie/${encodeURIComponent(curie)}?query_backend=${encodeURIComponent(queryBackend)}`,
+    http.url`${url}/curie/${encodeURIComponent(curie)}?query_backend=${encodeURIComponent(queryBackend)}`,
     data.params,
   );
 }
