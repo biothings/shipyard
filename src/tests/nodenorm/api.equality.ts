@@ -90,10 +90,7 @@ export default function (data: Object) {
   );
 
   if (!resultComparison) {
-    unexpectedResponseDifference.add(1, {
-      renci: renciResponse.body.toString(),
-      pending: pendingResponse.body.toString(),
-    });
+    unexpectedResponseDifference.add(1);
   }
 
   check(pendingResponse, {
