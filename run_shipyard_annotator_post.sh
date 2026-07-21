@@ -6,6 +6,7 @@ VUS=1000
 HTTP_TIMEOUT="60s"
 NUM_SAMPLE=100
 QUERY_BACKEND="es"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -51,3 +52,10 @@ docker compose -f docker-compose.yml run --user root \
     --duration ${DURATION} \
     /src/tests/annotator/$test_name" \
   shipyard
+
+test_exit=$?
+jsonlines="$output_directory/$test_name.jsonlines"
+if [[ -f "$jsonlines" ]]; then
+  python3 "$SCRIPT_DIR/scripts/generate_extra_report.py" "$jsonlines"
+fi
+exit "$test_exit"

@@ -5,6 +5,7 @@ DURATION="600s"
 HTTP_TIMEOUT="60s"
 WAIT_BETWEEN_RUNS=300  # seconds (5 minutes)
 QUERY_BACKEND="es"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -61,6 +62,11 @@ for VUS in "${VUS_VALUES[@]}"; do
       --duration ${DURATION} \
       /src/tests/annotator/$test_name" \
     shipyard
+
+  jsonlines="$output_directory/$test_name.jsonlines"
+  if [[ -f "$jsonlines" ]]; then
+    python3 "$SCRIPT_DIR/scripts/generate_extra_report.py" "$jsonlines"
+  fi
 
   if [[ $run -lt $total ]]; then
     echo ""
