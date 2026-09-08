@@ -72,6 +72,9 @@ specify the type of query, the database, and a server location.
 
 ```shell
 src/tests/
+├── annotator
+│   ├── stress.get.ci.ts
+│   └── stress.post.ci.ts
 ├── nodenorm
 │   ├── api.equality.ts
 │   ├── stress.elasticsearch.biothings-ci.ts

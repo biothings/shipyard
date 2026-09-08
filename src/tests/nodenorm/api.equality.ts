@@ -53,7 +53,11 @@ export function teardown() {
 }
 
 export default function (data: Object) {
-  let curies: Array<Object> = curieSamples(curieDB, __ENV.NUM_SAMPLE);
+  let curies: Array<Object> = curieSamples(
+    curieDB,
+    "nodenorm_curie",
+    __ENV.NUM_SAMPLE,
+  );
 
   let requestBody: Object = {
     curies: curies,
@@ -86,10 +90,7 @@ export default function (data: Object) {
   );
 
   if (!resultComparison) {
-    unexpectedResponseDifference.add(1, {
-      renci: renciResponse.body.toString(),
-      pending: pendingResponse.body.toString(),
-    });
+    unexpectedResponseDifference.add(1);
   }
 
   check(pendingResponse, {
